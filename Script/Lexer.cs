@@ -22,9 +22,9 @@ namespace GwentPlus
             input = input.Trim();
 
             // Definir expresiones regulares
-            string keywordPattern =@"\b(effect|card|for|while|if)\b";
+            string keywordPattern = @"\b(effect|card|for|while|if)\b";
             string identifiersPattern = @"^[a-zA-Z_][a-zA-Z0-9_]*";
-            string lambdaOperetorPattern =@"=>\b"; 
+            string lambdaOperetorPattern = @"=>"; 
             string arithmeticOperatorPattern = @"(?:[+\-*/%])";
             string relationalOperatorPattern = @"(?:==|!=|>=|<=|>|<)";
             string logicOperatorPattern = @"(?:&&|\|\||!)";
@@ -39,25 +39,23 @@ namespace GwentPlus
 
 
 
-
-
             // Crear un diccionario para mapear patrones de tokens a sus tipos
             var patterns = new Dictionary<string, string>
             {
-                {stringPattern, "String" },
-                { keywordPattern, "KeyWord" },
-                { identifiersPattern, "Identifier" },
-                { numberPattern, "Number" },
-                { lambdaOperetorPattern, "LambdaOperator" },
-                { arithmeticOperatorPattern, "ArithmeticOperator" },
-                { relationalOperatorPattern, "RelationalOperator" },
-                { logicOperatorPattern, "LogicOperator" },
-                { assignmentOperatorPattern, "AssignmentOperator" },
-                { unaryOperatorPattern, "UnaryOperator" },
-                { delimiterPattern, "Delimiter" },
-                { separatorPattern, "Separator" },
-                { semicolonPattern, "Semicolon" },
-                { accessPattern, "Access" }
+                { stringPattern, "STRING" },
+                { keywordPattern, "KEYWORD" },
+                { identifiersPattern, "IDENTIFIER" },
+                { numberPattern, "STRING" },
+                { lambdaOperetorPattern, "LAMBDAOPERATOR" },
+                { arithmeticOperatorPattern, "ARITHMETICOPERATOR" },
+                { relationalOperatorPattern, "RELATIONALOPERATOR" },
+                { logicOperatorPattern, "LOGICOPERETOR" },
+                { assignmentOperatorPattern, "ASSIGNMENTOPERATOR" },
+                { unaryOperatorPattern, "UNARYOPERATOR" },
+                { delimiterPattern, "DELIMITER" },
+                { separatorPattern, "SEPARATOR" },
+                { semicolonPattern, "SEMICOLON" },
+                { accessPattern, "ACCESS" }
             };
 
             // Mientras haya entrada por analizar
