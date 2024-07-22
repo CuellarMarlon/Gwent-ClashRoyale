@@ -14,6 +14,7 @@ public class Parser
     private Token CurrentToken => _position < _tokens.Count ? _tokens[_position] : null;
 
     private void NextToken() => _position++;
+    private Token PeekNextToken() => _position + 1 < _tokens.Count ? _tokens[_position + 1] : null;
 
     private void Expect(string type)
     {
@@ -27,9 +28,9 @@ public class Parser
     public List<ASTNode> Parse()
     {
         List<ASTNode> nodes = new List<ASTNode>();
-
+        
         while (CurrentToken != null)
-        {
+        {   
             // Console.WriteLine(CurrentToken.Value);
             if (CurrentToken.Value == "effect")
             {
@@ -56,14 +57,17 @@ public class Parser
 
         while (CurrentToken.Value != "}")
         {
+            // Console.WriteLine("effect");
             // Console.WriteLine(CurrentToken.Value);
 
             if (CurrentToken.Value == "Name")
             {
+
                 Expect("IDENTIFIER"); // Name
                 Expect("ASSIGNMENTOPERATOR");
                 effect.Name = CurrentToken.Value;
                 Expect("STRING");
+                Expect("SEPARATOR");
             }
             else if (CurrentToken.Value == "Params")
             {
@@ -89,12 +93,22 @@ public class Parser
             }
             else if (CurrentToken.Value == "Action")
             {
+                    // Console.WriteLine(CurrentToken.Value + " " + _tokens.IndexOf(CurrentToken) + " " + CurrentToken.Type);
+
                 Expect("IDENTIFIER"); // Action
                 Expect("ASSIGNMENTOPERATOR");
-                effect.Action = CurrentToken.Value;
+                // effect.Name = CurrentToken.Value;
                 while (CurrentToken.Value != "}")
                 {
-                    NextToken();
+                    Expect("DELIMITER");
+                    Expect("IDENTIFIER");
+                    Expect("SEPARATOR");
+                    Expect("IDENTIFIER");
+                    Expect("DELIMITER");
+                    Expect("LAMBDAOPERATOR");
+
+                    // Aquí es donde llamamos a ParseActionBody para manejar el cuerpo de Action
+                    effect.Actions = ParseActionBody(); 
                 }
                 Expect("DELIMITER");
 
@@ -111,6 +125,69 @@ public class Parser
         return effect;
     }
 
+    private List<ASTNode> ParseActionBody()
+    {
+        List<ASTNode> statements = new List<ASTNode>();
+
+        Expect("DELIMITER");
+        while (CurrentToken.Value != "}")
+        {
+            // Aquí asumiremos que cada línea es una llamada a método por simplicidad
+            if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == "(")
+            {
+                // Aquí deberías tener lógica para manejar diferentes tipos de declaraciones
+                // Por ahora, vamos a asumir que es una llamada a método simplificada
+                statements.Add(ParseMethodCall());
+            }
+            else
+            {
+                throw new Exception("Expresión no reconocida en el cuerpo de Action");
+            }
+
+            NextToken();
+        }
+
+        return statements;
+    }
+
+    private ASTNode ParseMethodCall()
+    {
+        // Asumiendo que una llamada a método comienza con el nombre y termina con un paréntesis de cierre
+        string methodName = CurrentToken.Value;
+        Expect("IDENTIFIER"); // El nombre del método
+        Expect("DELIMITER"); // Paréntesis de apertura
+    
+        List<string> arguments = new List<string>(); // Lista para almacenar los argumentos
+    
+        while (CurrentToken.Value != ")")
+        {
+            // Parsear cada argumento
+            if (CurrentToken.Type == "SEPARATOR")
+            {
+                NextToken();
+            }
+            else if (CurrentToken.Type == "IDENTIFIER")
+            {
+                // Agregar el argumento como un ASTNode
+                arguments.Add(CurrentToken.Value);
+                NextToken(); // Avanzar al siguiente token después de agregar el argumento
+            }
+            else
+            {
+                throw new Exception("Tipo de argumento no reconocido.");
+            }
+        }
+    
+        Expect("DELIMITER"); // Paréntesis de cierre
+    
+        // Crear y devolver el nodo de llamada al método con el nombre del método y la lista de argumentos
+        return new MethodCallNode
+        {
+            MethodName = methodName,
+            Arguments = arguments // Asignar la lista de argumentos al nodo de llamada al método
+        };
+    }
+
     private CardNode ParseCard()
     {
         Expect("KEYWORD"); // card
@@ -118,8 +195,9 @@ public class Parser
 
         CardNode card = new CardNode();
 
-while (CurrentToken.Value != "}")
+        while (CurrentToken.Value != "}")
         {
+            // Console.WriteLine("card");
             if (CurrentToken.Value == "Type")
             {
                 Expect("IDENTIFIER"); // Type
@@ -200,6 +278,8 @@ while (CurrentToken.Value != "}")
 
         while (CurrentToken.Value != "}")
         {
+            // Console.WriteLine("ParseActivation");
+
             if (CurrentToken.Value == "Effect")
             {
                 Expect("IDENTIFIER"); // Effect
@@ -237,8 +317,10 @@ while (CurrentToken.Value != "}")
 
         CardEffectNode CardEffect = new CardEffectNode();
 
-while (CurrentToken.Value != "}")
+        while (CurrentToken.Value != "}")
         {
+            // Console.WriteLine("ParseCardEffect");
+
             if (CurrentToken.Value == "Name")
             {
                 Expect("IDENTIFIER"); // Name
@@ -269,8 +351,10 @@ while (CurrentToken.Value != "}")
 
         SelectorNode selector = new SelectorNode();
 
-while (CurrentToken.Value != "}")
+        while (CurrentToken.Value != "}")
         {
+            // Console.WriteLine("ParseSelector");
+
             if (CurrentToken.Value == "Source")
             {
                 Expect("IDENTIFIER"); // Source
@@ -311,6 +395,8 @@ while (CurrentToken.Value != "}")
 
         while (CurrentToken.Value != "}")
         {
+            // Console.WriteLine("ParsePostAction");
+
             if (CurrentToken.Value == "Type")
             {
                 Expect("IDENTIFIER"); // Type

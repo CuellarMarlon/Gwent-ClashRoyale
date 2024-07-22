@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace GwentPlus
 {
@@ -12,11 +13,12 @@ namespace GwentPlus
     {
         public string Name { get; set; }
         public Dictionary<string, string> Params { get; set; }
-        public string Action { get; set; }
+        public List<ASTNode> Actions { get; set; }
 
         public EffectNode()
         {
             Params = new Dictionary<string, string>();
+            Actions = new List<ASTNode>();
         }
 
         public override void Print(int indent = 0)
@@ -27,7 +29,11 @@ namespace GwentPlus
             {
                 Console.WriteLine($"{indentation}  Param: {param.Key} = {param.Value}");
             }
-            Console.WriteLine($"{indentation}  Action: {Action}");
+            Console.WriteLine($"{indentation}  Action:");
+            foreach (var action in Actions)
+            {
+                action.Print(indent + 3); // Asegurarse de que cada acción se imprima con una indentación adicional
+            }
         }
     }
 
@@ -200,15 +206,20 @@ namespace GwentPlus
     public class MethodCallNode : ActionNode
     {
         public string MethodName { get; set; }
-        public List<ASTNode> Arguments { get; set; } = new List<ASTNode>();
+        public List<string> Arguments { get; set; } = new List<string>();
     
-        public override void Print(int indent = 0)
+       public override void Print(int indent = 0)
         {
             string indentation = new string(' ', indent);
-            Console.WriteLine($"{indentation}MethodCall:");
-            Console.WriteLine($"{indentation}MethodName: {MethodName}");
-            // Console.WriteLine($"{indentation}Arguments: "[{string.Join(Arguments.Where(a => a is VariableAccessNode).Select(a => ((VariableAccessNode)a).VariableName), "", "")}]"");
+            Console.WriteLine($"{indentation}MethodCall: {MethodName}");
+            Console.Write($"{indentation}Arguments: ");
+            foreach (var argument in Arguments)
+            {
+                Console.Write(argument + ", "); // Llama al método Print de cada nodo de argumento, permitiendo que se impriman según su implementación.
+            }
+            Console.Write("\n");
         }
+
     }
 
     public class VariableAccessNode : ActionNode
