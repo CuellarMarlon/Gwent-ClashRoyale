@@ -114,12 +114,14 @@ public class Parser
 
 
             }
+            
 
             if (CurrentToken.Value == ",")
             {
                 Expect("SEPARATOR");
             }
         }
+
 
         Expect("DELIMITER");
         return effect;
@@ -130,14 +132,17 @@ public class Parser
         List<ASTNode> statements = new List<ASTNode>();
 
         Expect("DELIMITER");
+
         while (CurrentToken.Value != "}")
         {
-            // Aquí asumiremos que cada línea es una llamada a método por simplicidad
+            Console.WriteLine(CurrentToken.Value + " " + _tokens.IndexOf(CurrentToken));
             if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == "(")
             {
-                // Aquí deberías tener lógica para manejar diferentes tipos de declaraciones
-                // Por ahora, vamos a asumir que es una llamada a método simplificada
                 statements.Add(ParseMethodCall());
+            }
+            else if (CurrentToken.Type == "NUMBER" && PeekNextToken().Type == "ARITHMETICOPERATOR")
+            {
+                statements.Add(ParseExpression());
             }
             else
             {
@@ -188,6 +193,56 @@ public class Parser
         };
     }
 
+    private ExpressionNode ParseExpression()
+    {
+        return ParseBinaryOperation();
+    }
+
+    private ExpressionNode ParseBinaryOperation(int precedence = 0)
+    {
+        var left = ParsePrimaryExpression();
+
+        while (true)
+        {
+            var operatorToken = CurrentToken;
+            // Aquí asumimos que solo hay operaciones de suma y resta por ahora
+            if (operatorToken.Value == "+" || operatorToken.Value == "-")
+            {
+                Expect(operatorToken.Type); // Avanza el token del operador
+                var right = ParsePrimaryExpression(); // Recursivamente parsea la expresión a la derecha del operador
+                left = new BinaryOperationNode
+                {
+                    Left = left,
+                    Operator = operatorToken.Value,
+                    Right = right
+                };
+            }
+            else
+            {
+                break;
+            }
+        }
+        
+        return left;
+    }
+
+    private ExpressionNode ParsePrimaryExpression()
+    {
+        switch (CurrentToken.Type)
+        {
+            case "NUMBER":
+                string tmp = CurrentToken.Value;
+                Expect("NUMBER"); // ojo 
+                return new NumberLiteralNode { Value = int.Parse(tmp) };
+            case "IDENTIFIER":
+                string tmp1 = CurrentToken.Value;
+                Expect("IDENTIFIER"); // ojo 
+                return new VariableReferenceNode { Name = tmp1 };
+            default:
+                throw new Exception($"Token no esperado: {CurrentToken.Type}  {_tokens.IndexOf(CurrentToken)}");
+        }
+    }
+
     private CardNode ParseCard()
     {
         Expect("KEYWORD"); // card
@@ -224,7 +279,7 @@ public class Parser
                 Expect("IDENTIFIER"); // Power
                 Expect("ASSIGNMENTOPERATOR");
                 card.Power = int.Parse(CurrentToken.Value);
-                Expect("STRING");
+                Expect("NUMBER");
             }
             else if (CurrentToken.Value == "Range")
             {
@@ -333,7 +388,7 @@ public class Parser
                 Expect("IDENTIFIER"); // Amount
                 Expect("ASSIGNMENTOPERATOR");
                 CardEffect.Amount = CurrentToken.Value;
-                Expect("STRING");
+                Expect("NUMBER");
             }
             if (CurrentToken.Value == ",")
             {
@@ -374,7 +429,7 @@ public class Parser
                 Expect("IDENTIFIER"); // Predicate
                 Expect("ASSIGNMENTOPERATOR");
                 selector.Predicate = CurrentToken.Value;
-                Expect("STRING");
+                Expect("NUMBER");
             }
 
             if (CurrentToken.Value == ",")

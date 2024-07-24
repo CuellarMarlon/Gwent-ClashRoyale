@@ -45,7 +45,7 @@ namespace GwentPlus
                 { stringPattern, "STRING" },
                 { keywordPattern, "KEYWORD" },
                 { identifiersPattern, "IDENTIFIER" },
-                { numberPattern, "STRING" },
+                { numberPattern, "NUMBER" },
                 { lambdaOperetorPattern, "LAMBDAOPERATOR" },
                 { arithmeticOperatorPattern, "ARITHMETICOPERATOR" },
                 { relationalOperatorPattern, "RELATIONALOPERATOR" },
