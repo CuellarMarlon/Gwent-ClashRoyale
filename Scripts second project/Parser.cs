@@ -5,6 +5,14 @@ public class Parser
     private List<Token> _tokens;
     private int _position;
 
+    private static readonly Dictionary<string,(int precedence, bool rightAssociative)> Operators = new()
+    {
+        { "+", (1, false) },
+        { "-", (1, false) },
+        { "*", (2, false) },
+        { "/", (2, false) },
+    };
+
     public Parser(List<Token> tokens)
     {
         _tokens = tokens;
@@ -135,21 +143,39 @@ public class Parser
 
         while (CurrentToken.Value != "}")
         {
-            Console.WriteLine(CurrentToken.Value + " " + _tokens.IndexOf(CurrentToken));
+            // Console.WriteLine(CurrentToken.Value + " " + _tokens.IndexOf(CurrentToken));
             if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == "(")
             {
                 statements.Add(ParseMethodCall());
             }
-            else if (CurrentToken.Type == "NUMBER" && PeekNextToken().Type == "ARITHMETICOPERATOR")
+            else if ((CurrentToken.Type == "NUMBER" || CurrentToken.Type == "IDENTIFIER") && PeekNextToken().Type == "ARITHMETICOPERATOR")
             {
-                statements.Add(ParseExpression());
+                // Inicia una nueva lista para capturar los tokens de la expresión matemática
+                List<Token> expressionTokens = new List<Token>();
+                // Agrega el primer token de la expresión
+                expressionTokens.Add(CurrentToken);
+
+                // Avanza hasta encontrar un punto y coma para terminar la expresión
+                while (CurrentToken.Value != ";" && CurrentToken.Value != "}")
+                {
+                    NextToken(); // Avanza al siguiente token
+                    if (CurrentToken.Value == ";") 
+                    {   
+                        Expect("SEMICOLON");
+                        break; // Detiene la captura en el punto y coma
+                    }
+                    expressionTokens.Add(CurrentToken); // Agrega el token actual a la expresión
+                }
+
+                statements.Add(ParseExpression(expressionTokens)); // Parsea la expresión capturada
+
             }
             else
             {
                 throw new Exception("Expresión no reconocida en el cuerpo de Action");
             }
 
-            NextToken();
+            // NextToken();
         }
 
         return statements;
@@ -184,8 +210,8 @@ public class Parser
         }
     
         Expect("DELIMITER"); // Paréntesis de cierre
+        Expect("SEMICOLON");
     
-        // Crear y devolver el nodo de llamada al método con el nombre del método y la lista de argumentos
         return new MethodCallNode
         {
             MethodName = methodName,
@@ -193,54 +219,78 @@ public class Parser
         };
     }
 
-    private ExpressionNode ParseExpression()
+    private ExpressionNode ParseExpression(List<Token> expressionTokens)
     {
-        return ParseBinaryOperation();
+        var postfixTokens = ConvertToPostfix(expressionTokens); // Convierta la entrada infija a postfija.
+        return ParsePostfixExpression(postfixTokens);
     }
 
-    private ExpressionNode ParseBinaryOperation(int precedence = 0)
+    private ExpressionNode ParsePostfixExpression(List<Token> postfixTokens)
     {
-        var left = ParsePrimaryExpression();
+        Stack<ExpressionNode> stack = new Stack<ExpressionNode>();
 
-        while (true)
+        foreach (var token in postfixTokens)
         {
-            var operatorToken = CurrentToken;
-            // Aquí asumimos que solo hay operaciones de suma y resta por ahora
-            if (operatorToken.Value == "+" || operatorToken.Value == "-")
+            if (token.Type == "NUMBER")
             {
-                Expect(operatorToken.Type); // Avanza el token del operador
-                var right = ParsePrimaryExpression(); // Recursivamente parsea la expresión a la derecha del operador
-                left = new BinaryOperationNode
+                stack.Push(new NumberLiteralNode { Value = int.Parse(token.Value) });
+            }
+            else if (token.Type == "IDENTIFIER")
+            {
+                stack.Push(new VariableReferenceNode { Name = token.Value });
+            }
+            else if (Operators.ContainsKey(token.Value))
+            {
+                var right = stack.Pop();
+                var left = stack.Pop();
+                stack.Push(new BinaryOperationNode { Left = left, Operator = token.Value, Right = right });
+            }
+        }
+
+        return stack.Pop();
+    }
+
+    public List<Token> ConvertToPostfix(List<Token> infixTokens)
+    {
+        Stack<Token> operatorStack = new Stack<Token>();
+        List<Token> output = new List<Token>();
+
+        foreach (var token in infixTokens)
+        {
+            if (token.Type == "NUMBER" || token.Type == "IDENTIFIER")
+            {
+                output.Add(token);
+            }
+            else if (Operators.ContainsKey(token.Value))
+            {
+                while (operatorStack.Any() && Operators.ContainsKey(operatorStack.Peek().Value) &&
+                       ((Operators[token.Value].rightAssociative && Operators[token.Value].precedence < Operators[operatorStack.Peek().Value].precedence) ||
+                        (!Operators[token.Value].rightAssociative && Operators[token.Value].precedence <= Operators[operatorStack.Peek().Value].precedence)))
                 {
-                    Left = left,
-                    Operator = operatorToken.Value,
-                    Right = right
-                };
+                    output.Add(operatorStack.Pop());
+                }
+                operatorStack.Push(token);
             }
-            else
+            else if (token.Value == "(")
             {
-                break;
+                operatorStack.Push(token);
+            }
+            else if (token.Value == ")")
+            {
+                while (operatorStack.Peek().Value != "(")
+                {
+                    output.Add(operatorStack.Pop());
+                }
+                operatorStack.Pop();
             }
         }
-        
-        return left;
-    }
 
-    private ExpressionNode ParsePrimaryExpression()
-    {
-        switch (CurrentToken.Type)
+        while (operatorStack.Any())
         {
-            case "NUMBER":
-                string tmp = CurrentToken.Value;
-                Expect("NUMBER"); // ojo 
-                return new NumberLiteralNode { Value = int.Parse(tmp) };
-            case "IDENTIFIER":
-                string tmp1 = CurrentToken.Value;
-                Expect("IDENTIFIER"); // ojo 
-                return new VariableReferenceNode { Name = tmp1 };
-            default:
-                throw new Exception($"Token no esperado: {CurrentToken.Type}  {_tokens.IndexOf(CurrentToken)}");
+            output.Add(operatorStack.Pop());
         }
+
+        return output;
     }
 
     private CardNode ParseCard()
