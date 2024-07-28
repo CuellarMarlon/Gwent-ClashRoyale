@@ -23,6 +23,7 @@ namespace GwentPlus
 
             // Definir expresiones regulares
             string keywordPattern = @"\b(effect|card|for|while|if)\b";
+            string boolValuePattern = @"\b(true|false)";
             string identifiersPattern = @"^[a-zA-Z_][a-zA-Z0-9_]*";
             string lambdaOperetorPattern = @"=>"; 
             string arithmeticOperatorPattern = @"(?:[+\-*/%])";
@@ -44,6 +45,7 @@ namespace GwentPlus
             {
                 { stringPattern, "STRING" },
                 { keywordPattern, "KEYWORD" },
+                { boolValuePattern, "BOOLEAN" },
                 { identifiersPattern, "IDENTIFIER" },
                 { numberPattern, "NUMBER" },
                 { lambdaOperetorPattern, "LAMBDAOPERATOR" },

@@ -32,7 +32,7 @@ namespace GwentPlus
             Console.WriteLine($"{indentation}  Action:");
             foreach (var action in Actions)
             {
-                action.Print(indent + 3); // Asegurarse de que cada acción se imprima con una indentación adicional
+                action.Print(indent + 3); 
             }
         }
     }
@@ -70,7 +70,7 @@ namespace GwentPlus
 
     public class ActivationNode : ASTNode
     {
-        public CardEffectNode Effect { get; set; }//!!!!!!
+        public CardEffectNode Effect { get; set; }
         public SelectorNode Selector { get; set; }
         public PostActionNode PostAction { get; set; }
 
@@ -117,7 +117,7 @@ namespace GwentPlus
     public class CardEffectNode : ASTNode
     {
         public string Name { get; set; }
-        public string Amount { get; set; }//!!!
+        public string Amount { get; set; }
 
         public override void Print(int indent = 0)
         {
@@ -155,7 +155,7 @@ namespace GwentPlus
             Console.Write($"{indentation + " "}Arguments: ");
             foreach (var argument in Arguments)
             {
-                Console.Write(argument + ", "); // Llama al método Print de cada nodo de argumento, permitiendo que se impriman según su implementación.
+                Console.Write(argument + ", "); 
             }
             Console.Write("\n");
         }
@@ -171,6 +171,16 @@ namespace GwentPlus
         public override void Print(int indent = 0)
         {
             Console.WriteLine($"{new string(' ', indent)}NumberLiteral: {Value}");
+        }
+    }
+
+    public class BooleanLiteralNode : ExpressionNode
+    {
+        public bool Value { get; set; }
+
+        public override void Print(int indent = 0)
+        {
+            Console.WriteLine($"{new string(' ', indent)}BooleanLiteral: {Value}");
         }
     }
 
@@ -198,77 +208,4 @@ namespace GwentPlus
         }
     }
 
-
-
-    // public class ForLoopNode : ActionNode
-    // {
-    //     public ASTNode Condition { get; set; }
-    //     public ASTNode Increment { get; set; }
-
-    //     public override void Print(int indent = 0)
-    //     {
-    //         string indentation = new string(' ', indent);
-    //         Console.WriteLine($"{indentation}ForLoop:");
-    //         Console.WriteLine($"{indentation}  Condition: {Condition}");
-    //         Console.WriteLine($"{indentation}  Increment: {Increment}");
-    //         base.Print(indent + 2); // Llama al método Print de la clase base para imprimir los hijos
-    //     }
-    // }
-
-    // public class WhileLoopNode : ActionNode
-    // {
-    //     public ASTNode Condition { get; set; }
-
-    //     public override void Print(int indent = 0)
-    //     {
-    //         string indentation = new string(' ', indent);
-    //         Console.WriteLine($"{indentation}WhileLoop:");
-    //         Console.WriteLine($"{indentation}  Condition: {Condition}");
-    //         base.Print(indent + 2); // Llama al método Print de la clase base para imprimir los hijos
-    //     }
-    // }
-
-    // public class IfStatementNode : ActionNode
-    // {
-    //     public ASTNode Condition { get; set; }
-    //     public ActionNode TrueBranch { get; set; }
-    //     public ActionNode FalseBranch { get; set; }
-
-    //     public override void Print(int indent = 0)
-    //     {
-    //         string indentation = new string(' ', indent);
-    //         Console.WriteLine($"{indentation}IfStatement:");
-    //         Console.WriteLine($"{indentation}  Condition: {Condition}");
-    //         Console.WriteLine($"{indentation}TrueBranch:");
-    //         TrueBranch?.Print(indent + 2);
-    //         Console.WriteLine($"{indentation}FalseBranch:");
-    //         FalseBranch?.Print(indent + 2);
-    //     }
-    // }
-
-    // public class AssignmentNode : ActionNode
-    // {
-    //     public string Variable { get; set; }
-    //     public ASTNode Value { get; set; }
-
-    //     public override void Print(int indent = 0)
-    //     {
-    //         string indentation = new string(' ', indent);
-    //         Console.WriteLine($"{indentation}Assignment:");
-    //         Console.WriteLine($"{indentation}Variable: {Variable}");
-    //         Console.WriteLine($"{indentation}Value: {Value}");
-    //     }
-    // }
-
-    // public class VariableAccessNode : ActionNode
-    // {
-    //     public string VariableName { get; set; }
-
-    //     public override void Print(int indent = 0)
-    //     {
-    //         string indentation = new string(' ', indent);
-    //         Console.WriteLine($"{indentation}VariableAccess:");
-    //         Console.WriteLine($"{indentation}VariableName: {VariableName}");
-    //     }
-    // }
 }

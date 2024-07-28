@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace GwentPlus
 {
 public class Parser
@@ -5,12 +7,22 @@ public class Parser
     private List<Token> _tokens;
     private int _position;
 
-    private static readonly Dictionary<string,(int precedence, bool rightAssociative)> Operators = new()
+    public static readonly Dictionary<string,(int precedence, bool rightAssociative)> Operators = new()
     {
         { "+", (1, false) },
         { "-", (1, false) },
         { "*", (2, false) },
         { "/", (2, false) },
+        { "&&", (3, false)},
+        { "||", (4, false)},
+        { "!", (3, true)},
+        { "==", (5, false) }, 
+        { "!=", (5, false) }, 
+        { "<", (5, false) },  
+        { ">", (5, false) },  
+        { ">=", (5, false) }, 
+        { "<=", (5, false) }
+
     };
 
     public Parser(List<Token> tokens)
@@ -18,7 +30,7 @@ public class Parser
         _tokens = tokens;
         _position = 0;
     }
-
+    
     private Token CurrentToken => _position < _tokens.Count ? _tokens[_position] : null;
 
     private void NextToken() => _position++;
@@ -166,13 +178,45 @@ public class Parser
                     }
                     expressionTokens.Add(CurrentToken); // Agrega el token actual a la expresión
                 }
-
+            
                 statements.Add(ParseExpression(expressionTokens)); // Parsea la expresión capturada
 
             }
+            else if (CurrentToken.Type == "BOOLEAN" || CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Type == "LOGICOPERATOR")
+            {
+                List<Token> expressionTokens = new List<Token>();
+                while (CurrentToken.Value != ";" && CurrentToken.Value != "}")
+                {
+                    expressionTokens.Add(CurrentToken);
+                    NextToken();
+                    if (CurrentToken.Value == ";")
+                    {
+                        Expect("SEMICOLON");
+                        break;
+                    }
+                }
+
+                statements.Add(ParseBooleanExpression(expressionTokens));
+            }
+            else if (CurrentToken.Type == "NUMBER" || CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Type == "RELATIONALOPERATOR")
+            {
+                List<Token> expressionTokens = new List<Token>();
+                while (CurrentToken.Value != ";" && CurrentToken.Value != "}")
+                {
+                    expressionTokens.Add(CurrentToken);
+                    NextToken();
+                    if (CurrentToken.Value == ";")
+                    {
+                        Expect("SEMICOLON");
+                        break;
+                    }
+                }
+
+                statements.Add(ParseRelationalExpression(expressionTokens));
+            }
             else
             {
-                throw new Exception("Expresión no reconocida en el cuerpo de Action");
+                throw new Exception("Expresión no reconocida en el cuerpo de Action: " + CurrentToken.Value + " " + _tokens.IndexOf(CurrentToken));
             }
 
             // NextToken();
@@ -225,6 +269,18 @@ public class Parser
         return ParsePostfixExpression(postfixTokens);
     }
 
+    private ExpressionNode ParseBooleanExpression(List<Token> expressionTokens)
+    {
+        var postfixTokens = ConvertToPostfix(expressionTokens); // Convierta la entrada infija a postfija.
+        return ParsePostfixBooleanExpression(postfixTokens);
+    }
+
+     private ExpressionNode ParseRelationalExpression(List<Token> expressionTokens)
+    {
+        var postfixTokens = ConvertToPostfix(expressionTokens); // Convierta la entrada infija a postfija.
+        return ParsePostfixRelationalExpression(postfixTokens);
+    }
+
     private ExpressionNode ParsePostfixExpression(List<Token> postfixTokens)
     {
         Stack<ExpressionNode> stack = new Stack<ExpressionNode>();
@@ -250,14 +306,60 @@ public class Parser
         return stack.Pop();
     }
 
-    public List<Token> ConvertToPostfix(List<Token> infixTokens)
+    private ExpressionNode ParsePostfixBooleanExpression(List<Token> postfixTokens)
+    {
+        Stack<ExpressionNode> stack = new Stack<ExpressionNode>();
+
+        foreach (var token in postfixTokens)
+        {
+            if (token.Type == "BOOLEAN")
+            {
+                stack.Push(new BooleanLiteralNode { Value = bool.Parse(token.Value)});
+            }
+            else if (Operators.ContainsKey(token.Value))
+            {
+                var right = stack.Pop();
+                var left = stack.Pop();
+                stack.Push(new BinaryOperationNode { Left = left, Operator = token.Value, Right = right});
+            }
+        }
+        
+        return stack.Pop();
+    }
+
+    private ExpressionNode ParsePostfixRelationalExpression(List<Token> postfixTokens)
+    {
+        Stack<ExpressionNode> stack = new Stack<ExpressionNode>();
+
+        foreach (var token in postfixTokens)
+        {
+            if (token.Type == "NUMBER")
+            {
+                stack.Push(new NumberLiteralNode { Value = int.Parse(token.Value) });
+            }
+            else if (token.Type == "IDENTIFIER")
+            {
+                stack.Push(new VariableReferenceNode { Name = token.Value });
+            }
+            else if (Operators.ContainsKey(token.Value))
+            {
+                var right = stack.Pop();
+                var left = stack.Pop();
+                stack.Push(new BinaryOperationNode { Left = left, Operator = token.Value, Right = right });
+            }
+        }
+
+        return stack.Pop();
+    }
+
+    private List<Token> ConvertToPostfix(List<Token> infixTokens)
     {
         Stack<Token> operatorStack = new Stack<Token>();
         List<Token> output = new List<Token>();
 
         foreach (var token in infixTokens)
         {
-            if (token.Type == "NUMBER" || token.Type == "IDENTIFIER")
+            if (token.Type == "NUMBER" || token.Type == "IDENTIFIER" || token.Type == "BOOLEAN")
             {
                 output.Add(token);
             }
@@ -472,7 +574,7 @@ public class Parser
                 Expect("IDENTIFIER"); // Single
                 Expect("ASSIGNMENTOPERATOR");
                 selector.Single = bool.Parse(CurrentToken.Value);
-                Expect("IDENTIFIER");
+                Expect("BOOLEAN");
             }
             else if (CurrentToken.Value == "Predicate")
             {
