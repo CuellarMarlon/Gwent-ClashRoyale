@@ -9,19 +9,19 @@ public class Parser
 
     public static readonly Dictionary<string,(int precedence, bool rightAssociative)> Operators = new()
     {
-        { "+", (1, false) },
-        { "-", (1, false) },
-        { "*", (2, false) },
-        { "/", (2, false) },
-        { "&&", (3, false)},
-        { "||", (4, false)},
-        { "!", (3, true)},
-        { "==", (5, false) }, 
-        { "!=", (5, false) }, 
-        { "<", (5, false) },  
-        { ">", (5, false) },  
-        { ">=", (5, false) }, 
-        { "<=", (5, false) }
+        { "+", (4, false) },
+        { "-", (4, false) },
+        { "*", (5, false) },
+        { "/", (5, false) },
+        { "&&", (1, false)},
+        { "||", (2, false)},
+        { "!", (1, true)},
+        { "==", (3, false) }, 
+        { "!=", (3, false) }, 
+        { "<", (3, false) },  
+        { ">", (3, false) },  
+        { ">=", (3, false) }, 
+        { "<=", (3, false) }
 
     };
 
@@ -272,13 +272,13 @@ public class Parser
     private ExpressionNode ParseBooleanExpression(List<Token> expressionTokens)
     {
         var postfixTokens = ConvertToPostfix(expressionTokens); // Convierta la entrada infija a postfija.
-        return ParsePostfixBooleanExpression(postfixTokens);
+        return ParsePostfixExpression(postfixTokens);
     }
 
      private ExpressionNode ParseRelationalExpression(List<Token> expressionTokens)
     {
         var postfixTokens = ConvertToPostfix(expressionTokens); // Convierta la entrada infija a postfija.
-        return ParsePostfixRelationalExpression(postfixTokens);
+        return ParsePostfixExpression(postfixTokens);
     }
 
     private ExpressionNode ParsePostfixExpression(List<Token> postfixTokens)
@@ -291,51 +291,9 @@ public class Parser
             {
                 stack.Push(new NumberLiteralNode { Value = int.Parse(token.Value) });
             }
-            else if (token.Type == "IDENTIFIER")
-            {
-                stack.Push(new VariableReferenceNode { Name = token.Value });
-            }
-            else if (Operators.ContainsKey(token.Value))
-            {
-                var right = stack.Pop();
-                var left = stack.Pop();
-                stack.Push(new BinaryOperationNode { Left = left, Operator = token.Value, Right = right });
-            }
-        }
-
-        return stack.Pop();
-    }
-
-    private ExpressionNode ParsePostfixBooleanExpression(List<Token> postfixTokens)
-    {
-        Stack<ExpressionNode> stack = new Stack<ExpressionNode>();
-
-        foreach (var token in postfixTokens)
-        {
-            if (token.Type == "BOOLEAN")
+            else if (token.Type == "BOOLEAN")
             {
                 stack.Push(new BooleanLiteralNode { Value = bool.Parse(token.Value)});
-            }
-            else if (Operators.ContainsKey(token.Value))
-            {
-                var right = stack.Pop();
-                var left = stack.Pop();
-                stack.Push(new BinaryOperationNode { Left = left, Operator = token.Value, Right = right});
-            }
-        }
-        
-        return stack.Pop();
-    }
-
-    private ExpressionNode ParsePostfixRelationalExpression(List<Token> postfixTokens)
-    {
-        Stack<ExpressionNode> stack = new Stack<ExpressionNode>();
-
-        foreach (var token in postfixTokens)
-        {
-            if (token.Type == "NUMBER")
-            {
-                stack.Push(new NumberLiteralNode { Value = int.Parse(token.Value) });
             }
             else if (token.Type == "IDENTIFIER")
             {
