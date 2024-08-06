@@ -266,19 +266,27 @@ public class Parser
     private ExpressionNode ParseExpression(List<Token> expressionTokens)
     {
         var postfixTokens = ConvertToPostfix(expressionTokens); // Convierta la entrada infija a postfija.
-        return ParsePostfixExpression(postfixTokens);
+        var ast = ParsePostfixExpression(postfixTokens);
+
+        if (ast.Evaluate().GetType() == typeof(bool)) return new BooleanLiteralNode { Value = (bool)ast.Evaluate() };
+        
+        return new NumberLiteralNode { Value = (int)ast.Evaluate() };
+        
     }
 
     private ExpressionNode ParseBooleanExpression(List<Token> expressionTokens)
     {
         var postfixTokens = ConvertToPostfix(expressionTokens); // Convierta la entrada infija a postfija.
-        return ParsePostfixExpression(postfixTokens);
+        var ast = ParsePostfixExpression(postfixTokens);
+        return new BooleanLiteralNode { Value = (bool)ast.Evaluate() };
     }
 
-     private ExpressionNode ParseRelationalExpression(List<Token> expressionTokens)
+    private ExpressionNode ParseRelationalExpression(List<Token> expressionTokens)
     {
         var postfixTokens = ConvertToPostfix(expressionTokens); // Convierta la entrada infija a postfija.
-        return ParsePostfixExpression(postfixTokens);
+        var ast = ParsePostfixExpression(postfixTokens);
+        return new BooleanLiteralNode { Value = (bool)ast.Evaluate() };
+
     }
 
     private ExpressionNode ParsePostfixExpression(List<Token> postfixTokens)

@@ -7,6 +7,7 @@ namespace GwentPlus
     public abstract class ASTNode
     {
         public abstract void Print(int indent = 0);
+
     }
 
     public class EffectNode : ASTNode
@@ -162,7 +163,10 @@ namespace GwentPlus
 
     }
 
-    public abstract class ExpressionNode : ASTNode { }
+    public abstract class ExpressionNode : ASTNode 
+    { 
+        public abstract object Evaluate();
+    }
     
     public class NumberLiteralNode : ExpressionNode
     {
@@ -171,6 +175,11 @@ namespace GwentPlus
         public override void Print(int indent = 0)
         {
             Console.WriteLine($"{new string(' ', indent)}NumberLiteral: {Value}");
+        }
+
+        public override object Evaluate()
+        {
+            return Value;
         }
     }
 
@@ -182,6 +191,11 @@ namespace GwentPlus
         {
             Console.WriteLine($"{new string(' ', indent)}BooleanLiteral: {Value}");
         }
+
+        public override object Evaluate()
+        {
+            return Value;
+        }
     }
 
     public class VariableReferenceNode : ExpressionNode
@@ -191,6 +205,11 @@ namespace GwentPlus
         public override void Print(int indent = 0)
         {
             Console.WriteLine($"{new string(' ', indent)}VariableReference: {Name}");
+        }
+
+        public override object Evaluate()
+        {
+            return Name;
         }
     }
 
@@ -205,6 +224,47 @@ namespace GwentPlus
             Console.WriteLine($"{new string(' ', indent)}Binary Operation: {Operator}");
             Left.Print(indent + 2);
             Right.Print(indent + 2);
+        }
+
+        public override object Evaluate()
+        {
+            var leftValue = Left.Evaluate();
+            var rightValue = Right.Evaluate();
+
+            switch (Operator)
+            {
+                case "+":
+                    return (int)leftValue + (int)rightValue;
+                case "-":
+                    return (int)leftValue - (int)rightValue;
+                case "*":
+                    return (int)leftValue * (int)rightValue;
+                case "/":
+                    return (int)leftValue / (int)rightValue;
+                case "&&":
+                    return (bool)leftValue && (bool)rightValue;
+                case "||":
+                    return (bool)leftValue || (bool)rightValue;
+                case "!":
+                    return !(bool)leftValue;
+                case "==":
+                    return (int)leftValue == (int)rightValue;
+                case "!=":
+                    return (int)leftValue != (int)rightValue;
+                case ">":
+                    return (int)leftValue > (int)rightValue;
+                case "<":
+                    return (int)leftValue < (int)rightValue;
+                case ">=":
+                    return (int)leftValue >= (int)rightValue;
+                case "<=":
+                    return (int)leftValue <= (int)rightValue;
+                
+                
+                default:
+                    throw new InvalidOperationException($"Operador desconocido: {Operator}");
+            }
+
         }
     }
 
