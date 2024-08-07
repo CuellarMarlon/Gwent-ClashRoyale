@@ -165,7 +165,7 @@ namespace GwentPlus
 
     public abstract class ExpressionNode : ASTNode 
     { 
-        public abstract object Evaluate();
+        public abstract object Evaluate(Context context);
     }
     
     public class NumberLiteralNode : ExpressionNode
@@ -177,7 +177,7 @@ namespace GwentPlus
             Console.WriteLine($"{new string(' ', indent)}NumberLiteral: {Value}");
         }
 
-        public override object Evaluate()
+        public override object Evaluate(Context context)
         {
             return Value;
         }
@@ -192,7 +192,7 @@ namespace GwentPlus
             Console.WriteLine($"{new string(' ', indent)}BooleanLiteral: {Value}");
         }
 
-        public override object Evaluate()
+        public override object Evaluate(Context context)
         {
             return Value;
         }
@@ -207,7 +207,7 @@ namespace GwentPlus
             Console.WriteLine($"{new string(' ', indent)}VariableReference: {Name}");
         }
 
-        public override object Evaluate()
+        public override object Evaluate(Context context)
         {
             return Name;
         }
@@ -226,10 +226,10 @@ namespace GwentPlus
             Right.Print(indent + 2);
         }
 
-        public override object Evaluate()
+        public override object Evaluate(Context context)
         {
-            var leftValue = Left.Evaluate();
-            var rightValue = Right.Evaluate();
+            var leftValue = Left.Evaluate(context);
+            var rightValue = Right.Evaluate(context);
 
             switch (Operator)
             {
@@ -266,6 +266,29 @@ namespace GwentPlus
             }
 
         }
+    }
+
+    public class AssignmentNode : ASTNode
+    {
+        public string VariableName { get; set; }
+        public ExpressionNode ValueExpression { get; set; }
+
+        public override void Print(int indent = 0)
+        {
+            string indentation = new string(' ', indent);
+            Console.WriteLine($"{indentation}Assignment: {VariableName} =");
+            ValueExpression.Print(indent + 2);
+        }
+
+        public object Evaluate(Context context)
+        {
+            var value = ValueExpression.Evaluate(context);
+
+            context.Variables[VariableName] = value;
+
+            return value;
+        }
+
     }
 
 }

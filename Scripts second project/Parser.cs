@@ -4,6 +4,7 @@ namespace GwentPlus
 {
 public class Parser
 {
+    private Context context;
     private List<Token> _tokens;
     private int _position;
 
@@ -27,6 +28,7 @@ public class Parser
 
     public Parser(List<Token> tokens)
     {
+        context = new Context();
         _tokens = tokens;
         _position = 0;
     }
@@ -214,6 +216,31 @@ public class Parser
 
                 statements.Add(ParseRelationalExpression(expressionTokens));
             }
+            else if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == "=")
+            {   
+                //Ddetectar una asignacion
+                string VariableName = CurrentToken.Value;
+                Expect("IDENTIFIER");
+                Expect("ASSIGNMENTOPERATOR");
+                
+                //Crear una lista para capturar los tokens de la expresion 
+                List<Token> expressionTokens = new List<Token>();
+
+                //Parsear la expresion a la derecha del "="
+                while (CurrentToken.Value != ";" && CurrentToken.Value != "}")
+                {
+                    expressionTokens.Add(CurrentToken);
+                    NextToken();
+                }
+
+                //Parsear la lista de token de la expresion 
+                var ValueExpression = ParseExpression(expressionTokens);
+                
+                //Crear un nodo de asignacion
+                statements.Add(new AssignmentNode { VariableName = VariableName, ValueExpression = ValueExpression });
+
+                Expect("SEMICOLON"); 
+            }
             else
             {
                 throw new Exception("Expresión no reconocida en el cuerpo de Action: " + CurrentToken.Value + " " + _tokens.IndexOf(CurrentToken));
@@ -268,9 +295,9 @@ public class Parser
         var postfixTokens = ConvertToPostfix(expressionTokens); // Convierta la entrada infija a postfija.
         var ast = ParsePostfixExpression(postfixTokens);
 
-        if (ast.Evaluate().GetType() == typeof(bool)) return new BooleanLiteralNode { Value = (bool)ast.Evaluate() };
+        if (ast.Evaluate(context).GetType() == typeof(bool)) return new BooleanLiteralNode { Value = (bool)ast.Evaluate(context) };
         
-        return new NumberLiteralNode { Value = (int)ast.Evaluate() };
+        return new NumberLiteralNode { Value = (int)ast.Evaluate(context) };
         
     }
 
@@ -278,14 +305,14 @@ public class Parser
     {
         var postfixTokens = ConvertToPostfix(expressionTokens); // Convierta la entrada infija a postfija.
         var ast = ParsePostfixExpression(postfixTokens);
-        return new BooleanLiteralNode { Value = (bool)ast.Evaluate() };
+        return new BooleanLiteralNode { Value = (bool)ast.Evaluate(context) };
     }
 
     private ExpressionNode ParseRelationalExpression(List<Token> expressionTokens)
     {
         var postfixTokens = ConvertToPostfix(expressionTokens); // Convierta la entrada infija a postfija.
         var ast = ParsePostfixExpression(postfixTokens);
-        return new BooleanLiteralNode { Value = (bool)ast.Evaluate() };
+        return new BooleanLiteralNode { Value = (bool)ast.Evaluate(context) };
 
     }
 
