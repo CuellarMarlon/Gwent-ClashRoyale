@@ -146,19 +146,34 @@ namespace GwentPlus
 
     public class MethodCallNode : ActionNode
     {
+        public string ObjectName { get; set; }
         public string MethodName { get; set; }
-        public List<string> Arguments { get; set; } = new List<string>();
+        public List<ExpressionNode> Arguments { get; set; } = new List<ExpressionNode>();
     
-       public override void Print(int indent = 0)
+        public override void Print(int indent = 0)
         {
             string indentation = new string(' ', indent);
             Console.WriteLine($"{indentation}MethodCall: {MethodName}");
             Console.Write($"{indentation + " "}Arguments: ");
             foreach (var argument in Arguments)
             {
-                Console.Write(argument + ", "); 
+                argument.Print(); 
             }
-            Console.Write("\n");
+        }
+
+        public object Evaluate(Context context)
+        {
+            var obj = context.GetVariable(ObjectName);
+            var method = obj.GetType().GetMethod(MethodName);
+
+            if (method == null)
+            {
+                throw new Exception($"Metodo '{MethodName}' no encontrado en '{ObjectName}'");
+            }
+
+            var args = Arguments.Select(arg => arg.Evaluate(context)).ToArray();
+
+            return method.Invoke(obj, args);
         }
 
     }
@@ -290,5 +305,4 @@ namespace GwentPlus
         }
 
     }
-
 }

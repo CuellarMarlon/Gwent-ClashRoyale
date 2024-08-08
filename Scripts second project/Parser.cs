@@ -157,64 +157,24 @@ public class Parser
 
         while (CurrentToken.Value != "}")
         {
-            // Console.WriteLine(CurrentToken.Value + " " + _tokens.IndexOf(CurrentToken));
-            if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == "(")
+            if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == ".")
             {
-                statements.Add(ParseMethodCall());
-            }
-            else if ((CurrentToken.Type == "NUMBER" || CurrentToken.Type == "IDENTIFIER") && PeekNextToken().Type == "ARITHMETICOPERATOR")
-            {
-                // Inicia una nueva lista para capturar los tokens de la expresión matemática
-                List<Token> expressionTokens = new List<Token>();
-                // Agrega el primer token de la expresión
-                expressionTokens.Add(CurrentToken);
+                string objectName = CurrentToken.Value;
+                Expect("IDENTIFIER");
+                Expect("ACCESS");
 
-                // Avanza hasta encontrar un punto y coma para terminar la expresión
-                while (CurrentToken.Value != ";" && CurrentToken.Value != "}")
-                {
-                    NextToken(); // Avanza al siguiente token
-                    if (CurrentToken.Value == ";") 
-                    {   
-                        Expect("SEMICOLON");
-                        break; // Detiene la captura en el punto y coma
-                    }
-                    expressionTokens.Add(CurrentToken); // Agrega el token actual a la expresión
-                }
-            
-                statements.Add(ParseExpression(expressionTokens)); // Parsea la expresión capturada
+                string methodName = CurrentToken.Value;
+                Expect("IDENTIFIER");
+                Expect("DELIMITER");
 
-            }
-            else if (CurrentToken.Type == "BOOLEAN" || CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Type == "LOGICOPERATOR")
-            {
-                List<Token> expressionTokens = new List<Token>();
-                while (CurrentToken.Value != ";" && CurrentToken.Value != "}")
-                {
-                    expressionTokens.Add(CurrentToken);
-                    NextToken();
-                    if (CurrentToken.Value == ";")
-                    {
-                        Expect("SEMICOLON");
-                        break;
-                    }
-                }
+                List<ExpressionNode> arguments = ParseArguments();
 
-                statements.Add(ParseBooleanExpression(expressionTokens));
-            }
-            else if (CurrentToken.Type == "NUMBER" || CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Type == "RELATIONALOPERATOR")
-            {
-                List<Token> expressionTokens = new List<Token>();
-                while (CurrentToken.Value != ";" && CurrentToken.Value != "}")
-                {
-                    expressionTokens.Add(CurrentToken);
-                    NextToken();
-                    if (CurrentToken.Value == ";")
-                    {
-                        Expect("SEMICOLON");
-                        break;
-                    }
-                }
+                Expect("DELIMITER");
 
-                statements.Add(ParseRelationalExpression(expressionTokens));
+                statements.Add(new MethodCallNode { ObjectName = objectName, MethodName = methodName, Arguments = arguments });
+
+                Expect("SEMICOLON");
+
             }
             else if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == "=")
             {   
@@ -223,18 +183,8 @@ public class Parser
                 Expect("IDENTIFIER");
                 Expect("ASSIGNMENTOPERATOR");
                 
-                //Crear una lista para capturar los tokens de la expresion 
-                List<Token> expressionTokens = new List<Token>();
-
-                //Parsear la expresion a la derecha del "="
-                while (CurrentToken.Value != ";" && CurrentToken.Value != "}")
-                {
-                    expressionTokens.Add(CurrentToken);
-                    NextToken();
-                }
-
                 //Parsear la lista de token de la expresion 
-                var ValueExpression = ParseExpression(expressionTokens);
+                var ValueExpression = ParseExpression(ParseExpressionTokens());
                 
                 //Crear un nodo de asignacion
                 statements.Add(new AssignmentNode { VariableName = VariableName, ValueExpression = ValueExpression });
@@ -245,21 +195,14 @@ public class Parser
             {
                 throw new Exception("Expresión no reconocida en el cuerpo de Action: " + CurrentToken.Value + " " + _tokens.IndexOf(CurrentToken));
             }
-
-            // NextToken();
         }
 
         return statements;
     }
 
-    private ASTNode ParseMethodCall()
+    private List<ExpressionNode> ParseArguments()
     {
-        // Asumiendo que una llamada a método comienza con el nombre y termina con un paréntesis de cierre
-        string methodName = CurrentToken.Value;
-        Expect("IDENTIFIER"); // El nombre del método
-        Expect("DELIMITER"); // Paréntesis de apertura
-    
-        List<string> arguments = new List<string>(); // Lista para almacenar los argumentos
+        List<ExpressionNode> arguments = new List<ExpressionNode>(); // Lista para almacenar los argumentos
     
         while (CurrentToken.Value != ")")
         {
@@ -270,8 +213,23 @@ public class Parser
             }
             else if (CurrentToken.Type == "IDENTIFIER")
             {
-                // Agregar el argumento como un ASTNode
-                arguments.Add(CurrentToken.Value);
+                // Agregar el argumento 
+                arguments.Add(new VariableReferenceNode { Name = CurrentToken.Value});
+                NextToken(); // Avanzar al siguiente token después de agregar el argumento
+            }
+            else if (CurrentToken.Type == "NUMBER")
+            {
+                // Agregar el argumento 
+                arguments.Add(new NumberLiteralNode { Value = int.Parse(CurrentToken.Value)});
+                NextToken(); // Avanzar al siguiente token después de agregar el argumento
+            }
+            else if (CurrentToken.Type == "BOOLEAN")
+            {
+                bool currentTokenValue = false;
+                if (CurrentToken.Value == "true") currentTokenValue = true;
+                else if (CurrentToken.Value == "false") currentTokenValue = false;
+                // Agregar el argumento 
+                arguments.Add(new BooleanLiteralNode { Value = currentTokenValue});
                 NextToken(); // Avanzar al siguiente token después de agregar el argumento
             }
             else
@@ -279,15 +237,23 @@ public class Parser
                 throw new Exception("Tipo de argumento no reconocido.");
             }
         }
-    
-        Expect("DELIMITER"); // Paréntesis de cierre
-        Expect("SEMICOLON");
-    
-        return new MethodCallNode
+
+        return arguments;
+    }
+
+    private List<Token> ParseExpressionTokens()
+    {
+        //Crear una lista para capturar los tokens de la expresion 
+        List<Token> expressionTokens = new List<Token>();
+
+        //Parsear la expresion a la derecha del "="
+        while (CurrentToken.Value != ";" && CurrentToken.Value != "}")
         {
-            MethodName = methodName,
-            Arguments = arguments // Asignar la lista de argumentos al nodo de llamada al método
-        };
+            expressionTokens.Add(CurrentToken);
+            NextToken();
+        }
+
+        return expressionTokens;
     }
 
     private ExpressionNode ParseExpression(List<Token> expressionTokens)
@@ -299,21 +265,6 @@ public class Parser
         
         return new NumberLiteralNode { Value = (int)ast.Evaluate(context) };
         
-    }
-
-    private ExpressionNode ParseBooleanExpression(List<Token> expressionTokens)
-    {
-        var postfixTokens = ConvertToPostfix(expressionTokens); // Convierta la entrada infija a postfija.
-        var ast = ParsePostfixExpression(postfixTokens);
-        return new BooleanLiteralNode { Value = (bool)ast.Evaluate(context) };
-    }
-
-    private ExpressionNode ParseRelationalExpression(List<Token> expressionTokens)
-    {
-        var postfixTokens = ConvertToPostfix(expressionTokens); // Convierta la entrada infija a postfija.
-        var ast = ParsePostfixExpression(postfixTokens);
-        return new BooleanLiteralNode { Value = (bool)ast.Evaluate(context) };
-
     }
 
     private ExpressionNode ParsePostfixExpression(List<Token> postfixTokens)
