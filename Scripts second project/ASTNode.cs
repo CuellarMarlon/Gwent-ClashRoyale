@@ -290,21 +290,57 @@ namespace GwentPlus
     {
         public string VariableName { get; set; }
         public ASTNode ValueExpression { get; set; }
+        public List<string> AccessChain { get; set; } = new List<string>();
+        public string Operator { get; set; }
 
         public override void Print(int indent = 0)
         {
             string indentation = new string(' ', indent);
-            Console.WriteLine($"{indentation}Assignment: {VariableName} =");
-            ValueExpression.Print(indent + 2);
+
+            // Imprimir la cadena de accesos anidados si existe
+            if (AccessChain.Any())
+            {
+                Console.WriteLine($"{indentation}Access: {string.Join(".", AccessChain)}");
+            }
+
+            // Imprimir el nombre de la variable, el operador y el valor de la expresión
+            Console.WriteLine($"{indentation}Assignment: {VariableName} {Operator}");
+
+            // Imprimir el valor de la expresión en una nueva línea
+            Console.Write($"{indentation}");
+            ValueExpression.Print(indent + 2); // Aumentar la indentación para el valor
         }
 
         public override object Evaluate(Context context)
         {
-            var value = ValueExpression.Evaluate(context);
+            var currentValue = context.GetVariable(VariableName); //obtiene el valor actual de la variable 
+            var value = ValueExpression.Evaluate(context); // Evalua la expresion
 
-            context.Variables[VariableName] = value;
+            if (currentValue is int currentInt && value is int valueInt)
+            {
+                switch (Operator)
+                {
+                    case "=":
+                        context.Variables[VariableName] = value;
+                        break;
+                    case "-=":
+                        context.Variables[VariableName] = currentInt - valueInt;
+                        break;
+                    case "+=":
+                        context.Variables[VariableName] = currentInt + valueInt;
+                        break;
+                    case "*=":
+                        context.Variables[VariableName] = currentInt * valueInt;
+                        break;
+                    case "/=":
+                        context.Variables[VariableName] = currentInt / valueInt;
+                        break;
+                    default:
+                        throw new InvalidOperationException($"No se puede aplicar el operador '{Operator}' a los tipos {currentValue.GetType().Name} y {value.GetType().Name}");                   
+                }
+            }
 
-            return value;
+            return context.Variables[VariableName];
         }
     }
 
