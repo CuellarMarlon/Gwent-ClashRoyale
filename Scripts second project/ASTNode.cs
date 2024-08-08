@@ -7,6 +7,7 @@ namespace GwentPlus
     public abstract class ASTNode
     {
         public abstract void Print(int indent = 0);
+        public abstract object Evaluate(Context context);
 
     }
 
@@ -36,6 +37,12 @@ namespace GwentPlus
                 action.Print(indent + 3); 
             }
         }
+
+        public override object Evaluate(Context context)
+        {
+            return 0;
+        }
+
     }
 
     public class CardNode : ASTNode
@@ -67,6 +74,11 @@ namespace GwentPlus
                 activation.Print(indent + 2);
             }
         }
+
+        public override object Evaluate(Context context)
+        {
+            return 0;
+        }
     }
 
     public class ActivationNode : ASTNode
@@ -82,6 +94,11 @@ namespace GwentPlus
             Effect.Print(indent + 2);
             Selector?.Print(indent + 2);
             PostAction?.Print(indent + 2);
+        }
+
+        public override object Evaluate(Context context)
+        {
+            return 0;
         }
     }
 
@@ -99,6 +116,11 @@ namespace GwentPlus
             Console.WriteLine($"{indentation}  Single: {Single}");
             Console.WriteLine($"{indentation}  Predicate: {Predicate}");
         }
+
+        public override object Evaluate(Context context)
+        {
+            return 0;
+        }
     }
 
     public class PostActionNode : ASTNode
@@ -113,6 +135,11 @@ namespace GwentPlus
             Console.WriteLine($"{indentation}  Type: {Type}");
             Selector?.Print(indent + 2);
         }
+
+        public override object Evaluate(Context context)
+        {
+            return 0;
+        }
     }
 
     public class CardEffectNode : ASTNode
@@ -126,6 +153,11 @@ namespace GwentPlus
             Console.WriteLine($"{indentation}Effect:");
             Console.WriteLine($"{indentation}  Name: {Name}");
             Console.WriteLine($"{indentation}  Amount: {Amount}");
+        }
+
+        public override object Evaluate(Context context)
+        {
+            return 0;
         }
     }
 
@@ -142,11 +174,16 @@ namespace GwentPlus
                 child.Print(indent + 2);
             }
         }
+
+        public override object Evaluate(Context context)
+        {
+            return 0;
+        }
     }
 
     public abstract class ExpressionNode : ASTNode 
     { 
-        public abstract object Evaluate(Context context);
+        
     }
     
     public class NumberLiteralNode : ExpressionNode
@@ -252,7 +289,7 @@ namespace GwentPlus
     public class AssignmentNode : ASTNode
     {
         public string VariableName { get; set; }
-        public ExpressionNode ValueExpression { get; set; }
+        public ASTNode ValueExpression { get; set; }
 
         public override void Print(int indent = 0)
         {
@@ -261,7 +298,7 @@ namespace GwentPlus
             ValueExpression.Print(indent + 2);
         }
 
-        public object Evaluate(Context context)
+        public override object Evaluate(Context context)
         {
             var value = ValueExpression.Evaluate(context);
 
@@ -269,7 +306,6 @@ namespace GwentPlus
 
             return value;
         }
-
     }
 
     public class MemberAccessNode : ASTNode
@@ -294,7 +330,7 @@ namespace GwentPlus
             }
         }
 
-        public object Evaluate(Context context)
+        public override object Evaluate(Context context)
         {
             var obj = context.GetVariable(AccessChain[0]); // El primer objeto en la cadena
             for (int i = 1; i < AccessChain.Count; i++)
