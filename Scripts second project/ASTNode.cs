@@ -144,40 +144,6 @@ namespace GwentPlus
         }
     }
 
-    public class MethodCallNode : ActionNode
-    {
-        public string ObjectName { get; set; }
-        public string MethodName { get; set; }
-        public List<ExpressionNode> Arguments { get; set; } = new List<ExpressionNode>();
-    
-        public override void Print(int indent = 0)
-        {
-            string indentation = new string(' ', indent);
-            Console.WriteLine($"{indentation}MethodCall: {MethodName}");
-            Console.Write($"{indentation + " "}Arguments: ");
-            foreach (var argument in Arguments)
-            {
-                argument.Print(); 
-            }
-        }
-
-        public object Evaluate(Context context)
-        {
-            var obj = context.GetVariable(ObjectName);
-            var method = obj.GetType().GetMethod(MethodName);
-
-            if (method == null)
-            {
-                throw new Exception($"Metodo '{MethodName}' no encontrado en '{ObjectName}'");
-            }
-
-            var args = Arguments.Select(arg => arg.Evaluate(context)).ToArray();
-
-            return method.Invoke(obj, args);
-        }
-
-    }
-
     public abstract class ExpressionNode : ASTNode 
     { 
         public abstract object Evaluate(Context context);
@@ -305,4 +271,55 @@ namespace GwentPlus
         }
 
     }
+
+    public class MemberAccessNode : ASTNode
+    {
+        public List<string> AccessChain { get; set; } = new List<string>();
+        public List<ExpressionNode> Arguments { get; set; } =  new List<ExpressionNode>();
+        public bool IsProperty { get; set; }
+
+        public override void Print(int indent = 0)
+        {
+            string indentation = new string(' ', indent);
+            string memberType = IsProperty ? "PropertyAccess" : "MethodCall";
+            Console.WriteLine($"{indentation}{memberType}: {string.Join(".", AccessChain)}");
+
+            if (!IsProperty && Arguments.Count > 0)
+            {
+                Console.WriteLine($"{indentation}Arguments:");
+                foreach (var arg in Arguments)
+                {
+                    arg.Print(indent + 4); 
+                }
+            }
+        }
+
+        public object Evaluate(Context context)
+        {
+            var obj = context.GetVariable(AccessChain[0]); // El primer objeto en la cadena
+            for (int i = 1; i < AccessChain.Count; i++)
+            {
+                if (IsProperty)
+                {
+                    var propertyInfo = obj.GetType().GetProperty(AccessChain[i]);
+                    if (propertyInfo == null)
+                    {
+                        throw new Exception($"Propiedad '{AccessChain[i]}' no encontrada en '{obj.GetType().Name}'");
+                    }
+                    obj = propertyInfo.GetValue(obj);
+                }
+                else
+                {
+                    var methodInfo = obj.GetType().GetMethod(AccessChain[i]);
+                    if (methodInfo == null)
+                    {
+                        throw new Exception($"Método '{AccessChain[i]}' no encontrado en '{obj.GetType().Name}'");
+                    }
+                    obj = methodInfo.Invoke(obj, Arguments.ToArray()); 
+                }
+            }
+            return obj; // Devuelve el valor final
+        }
+    }
+
 }

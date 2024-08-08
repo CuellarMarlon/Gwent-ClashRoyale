@@ -160,21 +160,47 @@ public class Parser
             if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == ".")
             {
                 string objectName = CurrentToken.Value;
+                List<string> accessChain = new List<string>{objectName};
+
+                //Procesar los accesos anidados 
+                while (PeekNextToken().Value == ".")
+                {
+                    Expect("IDENTIFIER"); //Se espera el siguiente identificador 
+                    Expect("ACCESS"); //Se espera el punto
+                    string memberName = CurrentToken.Value;
+                    accessChain.Add(memberName);
+                }
+
+                //Verifica si es una propiedad o un metodo
+                bool isProperty = PeekNextToken().Value == ";";
+                List<ExpressionNode> arguments = new List<ExpressionNode>();
+                if (isProperty)
+                {
+                    Expect("IDENTIFIER");
+                    Expect("SEMICOLON");
+                }
+                else
+                {
+                    Expect("IDENTIFIER");
+                    Expect("DELIMITER");
+                    arguments = ParseArguments();
+                    Expect("DELIMITER");
+                    Expect("SEMICOLON");
+                }
+
+                statements.Add( new MemberAccessNode { AccessChain = accessChain, Arguments = arguments , IsProperty = isProperty });
+            }
+            else if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == "=")
+            {
+                // Manejo de asignaciones
+                string variableName = CurrentToken.Value;
                 Expect("IDENTIFIER");
-                Expect("ACCESS");
+                Expect("ASSIGNMENTOPERATOR");
 
-                string methodName = CurrentToken.Value;
-                Expect("IDENTIFIER");
-                Expect("DELIMITER");
-
-                List<ExpressionNode> arguments = ParseArguments();
-
-                Expect("DELIMITER");
-
-                statements.Add(new MethodCallNode { ObjectName = objectName, MethodName = methodName, Arguments = arguments });
+                var valueExpression = ParseExpression(ParseExpressionTokens());
+                statements.Add(new AssignmentNode { VariableName = variableName, ValueExpression = valueExpression });
 
                 Expect("SEMICOLON");
-
             }
             else if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == "=")
             {   
