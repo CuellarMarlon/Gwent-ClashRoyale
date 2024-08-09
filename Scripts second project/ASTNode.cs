@@ -408,4 +408,51 @@ namespace GwentPlus
             return null;
         }
     }
+
+    public class IfNode : ASTNode
+    {
+        public ExpressionNode Condition { get; set; }
+        public List<ASTNode> Body { get; set; } = new List<ASTNode>();
+        public List<ASTNode> ElseBody { get; set; } = new List<ASTNode>();
+    
+        public override void Print(int indent = 0)
+        {
+            string indentation = new string(' ', indent);
+            Console.WriteLine($"{indentation}If:");
+            Console.WriteLine($"{indentation}  Condition:");
+            Condition.Print(indent + 2);
+            Console.WriteLine($"{indentation}  Body:");
+            foreach (var statement in Body)
+            {
+                statement.Print(indent + 2);
+            }
+            if (ElseBody.Any())
+            {
+                Console.WriteLine($"{indentation}Else:");
+                foreach (var statement in ElseBody)
+                {
+                    statement.Print(indent + 2);
+                }
+            }
+        }
+    
+        public override object Evaluate(Context context)
+        {
+            if ((bool)Condition.Evaluate(context))
+            {
+                foreach (var statement in Body)
+                {
+                    statement.Evaluate(context);
+                }
+            }
+            else
+            {
+                foreach (var statement in ElseBody)
+                {
+                    statement.Evaluate(context);
+                }
+            }
+            return null;
+        }
+    }
 }

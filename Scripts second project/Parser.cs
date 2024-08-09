@@ -169,6 +169,10 @@ public class Parser
             {
                 statements.Add(ParseWhile());
             }
+            else if (CurrentToken.Value == "if")
+            {
+                statements.Add(ParseIf());
+            }
             else
             {
                 throw new Exception("Expresión no reconocida en el cuerpo de Action: " + CurrentToken.Value + " " + _tokens.IndexOf(CurrentToken));
@@ -416,6 +420,65 @@ public class Parser
 
         Expect("DELIMITER"); // Cerrar el ciclo con el delimitador
         return whileNode;
+    }
+
+    private IfNode ParseIf()
+    {
+        Expect("KEYWORD"); // if
+        Expect("DELIMITER");
+
+        var ifNode = new IfNode();
+
+        // Parsear la condición
+        ifNode.Condition = ParseExpression(ParseExpressionTokens());
+
+        Expect("DELIMITER"); // Expect the delimiter after the condition ")"
+
+        // Parsear el cuerpo del if
+        Expect("DELIMITER"); //"{"
+        while (CurrentToken.Value != "else" && CurrentToken.Value != "}")
+        {
+            // Aquí puedes agregar más tipos de nodos que quieras manejar en el cuerpo
+            if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == ".")
+            {
+                ifNode.Body.Add(ParseMemberAccess());
+            }
+            else if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Type == "ASSIGNMENTOPERATOR")
+            {
+                ifNode.Body.Add(ParseAssignment(null));
+            }
+            else
+            {
+                throw new Exception("Expresión no reconocida en el cuerpo del if: " + CurrentToken.Value);
+            }
+        }
+
+        Expect("DELIMITER");
+        if (CurrentToken.Value == "else")
+        {
+            NextToken(); // Avanzar al token 'else'
+            Expect("DELIMITER"); // Expect the delimiter after 'else'
+
+            // Parsear el cuerpo del else
+            while (CurrentToken.Value != "}")
+            {
+                if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == ".")
+                {
+                    ifNode.ElseBody.Add(ParseMemberAccess());
+                }
+                else if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Type == "ASSIGNMENTOPERATOR")
+                {
+                    ifNode.ElseBody.Add(ParseAssignment(null));
+                }
+                else
+                {
+                    throw new Exception("Expresión no reconocida en el cuerpo del else: " + CurrentToken.Value);
+                }
+            }
+        }
+
+        Expect("DELIMITER"); // Cerrar el if con el delimitador
+        return ifNode;
     }
 
     private CardNode ParseCard()
