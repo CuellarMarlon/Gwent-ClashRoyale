@@ -377,5 +377,35 @@ namespace GwentPlus
             return obj; // Devuelve el valor final
         }
     }
+    
+    public class WhileNode : ASTNode
+    {
+        public ExpressionNode Condition { get; set; }
+        public List<ASTNode> Body { get; set; } = new List<ASTNode>();
 
+        public override void Print(int indent = 0)
+        {
+            string indentation = new string(' ', indent);
+            Console.WriteLine($"{indentation}While:");
+            Console.WriteLine($"{indentation}  Condition:");
+            Condition.Print(indent + 2);
+            Console.WriteLine($"{indentation}  Body:");
+            foreach (var statement in Body)
+            {
+                statement.Print(indent + 2);
+            }
+        }
+
+        public override object Evaluate(Context context)
+        {
+            while ((bool)Condition.Evaluate(context))
+            {
+                foreach (var statement in Body)
+                {
+                    statement.Evaluate(context);
+                }
+            }
+            return null;
+        }
+    }
 }

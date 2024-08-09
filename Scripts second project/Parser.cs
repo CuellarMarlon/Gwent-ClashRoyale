@@ -165,6 +165,10 @@ public class Parser
             {
                 statements.Add(ParseAssignment(null));
             }
+            else if (CurrentToken.Value == "while")
+            {
+                statements.Add(ParseWhile());
+            }
             else
             {
                 throw new Exception("Expresión no reconocida en el cuerpo de Action: " + CurrentToken.Value + " " + _tokens.IndexOf(CurrentToken));
@@ -283,7 +287,7 @@ public class Parser
         List<Token> expressionTokens = new List<Token>();
 
         //Parsear la expresion a la derecha del "="
-        while (CurrentToken.Value != ";" && CurrentToken.Value != "}")
+        while (CurrentToken.Value != ";" && CurrentToken.Value != "}" && CurrentToken.Value != ")")
         {
             expressionTokens.Add(CurrentToken);
             NextToken();
@@ -373,6 +377,45 @@ public class Parser
         }
 
         return output;
+    }
+
+    private WhileNode ParseWhile()
+    {
+        Expect("KEYWORD"); // while
+        Expect("DELIMITER");
+
+        var whileNode = new WhileNode();
+
+        // Parsear la condición
+        whileNode.Condition = ParseExpression(ParseExpressionTokens());
+
+        Expect("DELIMITER"); // Expect the delimiter after the condition "("
+
+        // Parsear el cuerpo del ciclo
+        Expect("DELIMITER"); //"{"
+        while (CurrentToken.Value != "}")
+        {
+            if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == ".")
+            {
+                whileNode.Body.Add(ParseMemberAccess());
+            }
+            else if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Type == "ASSIGNMENTOPERATOR")
+            {
+                whileNode.Body.Add(ParseAssignment(null));
+            }
+            else if (CurrentToken.Value == "while" && PeekNextToken().Value == "(")
+            {
+                throw new Exception($"Mijito implemnta el while :)");
+            }
+            else
+            {
+                // Aquí puedes agregar más tipos de nodos que quieras manejar en el cuerpo
+                throw new Exception("Expresión no reconocida en el cuerpo del while: " + CurrentToken.Value);
+            }
+        }
+
+        Expect("DELIMITER"); // Cerrar el ciclo con el delimitador
+        return whileNode;
     }
 
     private CardNode ParseCard()
