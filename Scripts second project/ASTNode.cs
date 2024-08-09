@@ -298,7 +298,7 @@ namespace GwentPlus
             string indentation = new string(' ', indent);
 
             // Imprimir la cadena de accesos anidados si existe
-            if (AccessChain.Any())
+            if (AccessChain != null && AccessChain.Any())
             {
                 Console.WriteLine($"{indentation}Access: {string.Join(".", AccessChain)}");
             }
@@ -313,34 +313,18 @@ namespace GwentPlus
 
         public override object Evaluate(Context context)
         {
-            var currentValue = context.GetVariable(VariableName); //obtiene el valor actual de la variable 
-            var value = ValueExpression.Evaluate(context); // Evalua la expresion
+            var value = ValueExpression.Evaluate(context);
 
-            if (currentValue is int currentInt && value is int valueInt)
+            if (context.Variables.ContainsKey(VariableName))
             {
-                switch (Operator)
-                {
-                    case "=":
-                        context.Variables[VariableName] = value;
-                        break;
-                    case "-=":
-                        context.Variables[VariableName] = currentInt - valueInt;
-                        break;
-                    case "+=":
-                        context.Variables[VariableName] = currentInt + valueInt;
-                        break;
-                    case "*=":
-                        context.Variables[VariableName] = currentInt * valueInt;
-                        break;
-                    case "/=":
-                        context.Variables[VariableName] = currentInt / valueInt;
-                        break;
-                    default:
-                        throw new InvalidOperationException($"No se puede aplicar el operador '{Operator}' a los tipos {currentValue.GetType().Name} y {value.GetType().Name}");                   
-                }
+                context.SetVariable(VariableName, value);
+            }
+            else 
+            {
+                context.DefineVariable(VariableName, value);
             }
 
-            return context.Variables[VariableName];
+            return value;
         }
     }
 

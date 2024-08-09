@@ -226,13 +226,13 @@ public class Parser
         if (PeekNextToken().Value == ".")
         {
             var valueMemberAcces = ParseMemberAccess();
-            return new AssignmentNode { VariableName = variableName, ValueExpression = valueMemberAcces, AccessChain = accessChain };
+            return new AssignmentNode { VariableName = variableName, ValueExpression = valueMemberAcces, AccessChain = accessChain, Operator = _operator };
         } 
         else 
         {
             var valueExpression = ParseExpression(ParseExpressionTokens());
             Expect("SEMICOLON"); //Check
-            return new AssignmentNode { VariableName = variableName, ValueExpression = valueExpression, Operator = _operator };
+            return new AssignmentNode { VariableName = variableName, ValueExpression = valueExpression, AccessChain = accessChain, Operator = _operator };
         }
     }
 
