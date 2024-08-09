@@ -22,7 +22,7 @@ namespace GwentPlus
             input = input.Trim();
 
             // Definir expresiones regulares
-            string keywordPattern = @"\b(effect|card|for|while|if)\b";
+            string keywordPattern = @"\b(effect|card|for|while|if|else|in)\b";
             string boolValuePattern = @"\b(true|false)";
             string identifiersPattern = @"^[a-zA-Z_][a-zA-Z0-9_]*";
             string lambdaOperetorPattern = @"=>"; 

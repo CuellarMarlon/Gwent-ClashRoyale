@@ -173,6 +173,10 @@ public class Parser
             {
                 statements.Add(ParseIf());
             }
+            else if (CurrentToken.Value == "for")
+            {
+                statements.Add(ParseFor());
+            }
             else
             {
                 throw new Exception("Expresión no reconocida en el cuerpo de Action: " + CurrentToken.Value + " " + _tokens.IndexOf(CurrentToken));
@@ -456,7 +460,7 @@ public class Parser
         Expect("DELIMITER");
         if (CurrentToken.Value == "else")
         {
-            NextToken(); // Avanzar al token 'else'
+            Expect("KEYWORD"); // 'else'
             Expect("DELIMITER"); // Expect the delimiter after 'else'
 
             // Parsear el cuerpo del else
@@ -479,6 +483,48 @@ public class Parser
 
         Expect("DELIMITER"); // Cerrar el if con el delimitador
         return ifNode;
+    }
+
+    private ForNode ParseFor()
+    {
+        Expect("KEYWORD"); // for
+        Expect("DELIMITER"); // Expect '('
+
+        var forNode = new ForNode();
+
+        // Parsear el target
+        forNode.Item = CurrentToken.Value;
+        Expect("IDENTIFIER"); // target
+
+        Expect("KEYWORD"); // in
+        forNode.Collection = new VariableReferenceNode{ Name = CurrentToken.Value };
+        Expect("IDENTIFIER"); // Expect 'targets'
+
+        // Parsear la colección (targets)
+        // forEachNode.Collection.Name = CurrentToken.Value;
+
+        Expect("DELIMITER"); // Expect ')'
+
+        // Parsear el cuerpo del ciclo
+        Expect("DELIMITER"); //'{'
+        while (CurrentToken.Value != "}")
+        {
+            if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == ".")
+            {
+                forNode.Body.Add(ParseMemberAccess());
+            }
+            else if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Type == "ASSIGNMENTOPERATOR")
+            {
+                forNode.Body.Add(ParseAssignment(null));
+            }
+            else
+            {
+                throw new Exception("Expresión no reconocida en el cuerpo del for: " + CurrentToken.Value);
+            }
+        }
+
+        Expect("DELIMITER"); // Cerrar el for con el delimitador
+        return forNode;
     }
 
     private CardNode ParseCard()

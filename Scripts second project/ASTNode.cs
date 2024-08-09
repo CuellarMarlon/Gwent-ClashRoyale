@@ -455,4 +455,39 @@ namespace GwentPlus
             return null;
         }
     }
+
+    public class ForNode : ASTNode
+    {
+        public string Item { get; set; }
+        public VariableReferenceNode Collection { get; set; }
+        public List<ASTNode> Body { get; set; } = new List<ASTNode>();
+
+        public override void Print(int indent = 0)
+        {
+            string indentation = new string(' ', indent);
+            Console.WriteLine($"{indentation}For:");
+            Console.WriteLine($"{indentation}  Item: {Item}");
+            Console.WriteLine($"{indentation}  Collection:");
+            Collection.Print(indent + 2);
+            Console.WriteLine($"{indentation}  Body:");
+            foreach (var statement in Body)
+            {
+                statement.Print(indent + 2);
+            }
+        }
+
+        public override object Evaluate(Context context)
+        {
+            var collection = Collection.Evaluate(context) as IEnumerable<object>;
+            foreach (var item in collection)
+            {
+                context.DefineVariable(Item, item);
+                foreach (var statement in Body)
+                {
+                    statement.Evaluate(context);
+                }
+            }
+            return null;
+        }
+    }
 }
