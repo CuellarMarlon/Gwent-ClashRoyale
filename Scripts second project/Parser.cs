@@ -415,6 +415,18 @@ public class Parser
             {
                 throw new Exception($"Mijito implemnta el while :)");
             }
+            else if (CurrentToken.Value == "while")
+            {
+                whileNode.Body.Add(ParseWhile());
+            }
+            else if (CurrentToken.Value == "if")
+            {
+                whileNode.Body.Add(ParseIf());
+            }
+            else if (CurrentToken.Value == "for")
+            {
+                whileNode.Body.Add(ParseFor());
+            }
             else
             {
                 // Aquí puedes agregar más tipos de nodos que quieras manejar en el cuerpo
@@ -451,6 +463,18 @@ public class Parser
             {
                 ifNode.Body.Add(ParseAssignment(null));
             }
+            else if (CurrentToken.Value == "while")
+            {
+                ifNode.Body.Add(ParseWhile());
+            }
+            else if (CurrentToken.Value == "if")
+            {
+                ifNode.Body.Add(ParseIf());
+            }
+            else if (CurrentToken.Value == "for")
+            {
+                ifNode.Body.Add(ParseFor());
+            }
             else
             {
                 throw new Exception("Expresión no reconocida en el cuerpo del if: " + CurrentToken.Value);
@@ -473,6 +497,18 @@ public class Parser
                 else if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Type == "ASSIGNMENTOPERATOR")
                 {
                     ifNode.ElseBody.Add(ParseAssignment(null));
+                }
+                else if (CurrentToken.Value == "while")
+                {
+                    ifNode.Body.Add(ParseWhile());
+                }
+                else if (CurrentToken.Value == "if")
+                {
+                    ifNode.Body.Add(ParseIf());
+                }
+                else if (CurrentToken.Value == "for")
+                {
+                    ifNode.Body.Add(ParseFor());
                 }
                 else
                 {
@@ -516,6 +552,18 @@ public class Parser
             else if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Type == "ASSIGNMENTOPERATOR")
             {
                 forNode.Body.Add(ParseAssignment(null));
+            }
+            else if (CurrentToken.Value == "while")
+            {
+                forNode.Body.Add(ParseWhile());
+            }
+            else if (CurrentToken.Value == "if")
+            {
+                forNode.Body.Add(ParseIf());
+            }
+            else if (CurrentToken.Value == "for")
+            {
+                forNode.Body.Add(ParseFor());
             }
             else
             {
