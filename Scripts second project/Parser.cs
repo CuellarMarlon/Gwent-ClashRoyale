@@ -103,10 +103,20 @@ public class Parser
                     Expect("IDENTIFIER"); // params name
                     Expect("ASSIGNMENTOPERATOR");
                     var paramType = CurrentToken.Value;
-                    Expect("IDENTIFIER"); // param type
+                    Expect("NUMBER"); // param type
                     effect.Params[paramName] = paramType;
+                    if (context.Variables.ContainsKey(paramName))
+                    {
+                        context.SetVariable(paramName, paramType);
+                    }
+                    else
+                    {
+                        context.DefineVariable(paramName, paramType);
+                    }
+                    
                     if (CurrentToken.Value == ",")
                     {
+                        Expect("SEPARATOR");
                     }
                 }
 
@@ -242,9 +252,19 @@ public class Parser
         } 
         else 
         {
-            var valueExpression = ParseExpression(ParseExpressionTokens());
+            var valueExpression = ParseExpression(ParseExpressionTokens(), false);
             Expect("SEMICOLON"); //Check
-            return new AssignmentNode { VariableName = variableName, ValueExpression = valueExpression, AccessChain = accessChain, Operator = _operator };
+            AssignmentNode assignmentNode = new AssignmentNode { VariableName = variableName, ValueExpression = valueExpression, AccessChain = accessChain, Operator = _operator };
+            if (context.Variables.ContainsKey(variableName))
+            {
+                context.SetVariable(variableName, valueExpression);
+            }
+            else
+            {
+                context.DefineVariable(variableName, valueExpression);
+            }
+
+            return assignmentNode;
         }
     }
 
@@ -304,14 +324,18 @@ public class Parser
         return expressionTokens;
     }
 
-    private ExpressionNode ParseExpression(List<Token> expressionTokens)
+    private ExpressionNode ParseExpression(List<Token> expressionTokens, bool isCondition)
     {
         var postfixTokens = ConvertToPostfix(expressionTokens); // Convierta la entrada infija a postfija.
         var ast = ParsePostfixExpression(postfixTokens);
-
-        if (ast.Evaluate(context).GetType() == typeof(bool)) return new BooleanLiteralNode { Value = (bool)ast.Evaluate(context) };
         
-        return new NumberLiteralNode { Value = (int)ast.Evaluate(context) };
+        if (!isCondition)
+        {   
+            if (ast.Evaluate(context).GetType() == typeof(bool)) return new BooleanLiteralNode { Value = (bool)ast.Evaluate(context) };
+            else return new NumberLiteralNode { Value = (int)ast.Evaluate(context) };
+        }
+        
+        return ast;
         
     }
 
@@ -331,7 +355,14 @@ public class Parser
             }
             else if (token.Type == "IDENTIFIER")
             {
-                stack.Push(new VariableReferenceNode { Name = token.Value });
+                if (context.Variables.ContainsKey(token.Value))
+                {
+                    stack.Push(new VariableReferenceNode { Name = token.Value });
+                }
+                else 
+                {
+                    throw new Exception($"La varible '{token.Value}' no esta definida");
+                }
             }
             else if (Operators.ContainsKey(token.Value))
             {
@@ -395,7 +426,7 @@ public class Parser
         var whileNode = new WhileNode();
 
         // Parsear la condición
-        whileNode.Condition = ParseExpression(ParseExpressionTokens());
+        whileNode.Condition = ParseExpression(ParseExpressionTokens(), true);
 
         Expect("DELIMITER"); // Expect the delimiter after the condition "("
 
@@ -446,7 +477,7 @@ public class Parser
         var ifNode = new IfNode();
 
         // Parsear la condición
-        ifNode.Condition = ParseExpression(ParseExpressionTokens());
+        ifNode.Condition = ParseExpression(ParseExpressionTokens(), true);
 
         Expect("DELIMITER"); // Expect the delimiter after the condition ")"
 

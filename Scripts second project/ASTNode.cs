@@ -227,7 +227,21 @@ namespace GwentPlus
 
         public override object Evaluate(Context context)
         {
-            return Name;
+            return context.GetVariable(Name);
+        }
+    }
+
+    public class ConditionNode : ExpressionNode
+    {
+        public Func<Context, bool> Condition { get; set; }
+
+        public override void Print(int indent = 0)
+        {
+            
+        }
+        public override object Evaluate(Context context)
+        {
+            return Condition(context);
         }
     }
 
