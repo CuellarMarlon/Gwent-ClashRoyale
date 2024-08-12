@@ -218,7 +218,8 @@ namespace GwentPlus
 
     public class VariableReferenceNode : ExpressionNode
     {
-        public string Name { get; set; }
+        public string Name { get; set; } 
+        public object Value { get; set; } 
 
         public override void Print(int indent = 0)
         {
@@ -493,6 +494,10 @@ namespace GwentPlus
         public override object Evaluate(Context context)
         {
             var collection = Collection.Evaluate(context) as IEnumerable<object>;
+            if (collection == null) 
+            {
+                throw new Exception($"La coleccion '{Collection.Name}' no es un enumerable.");
+            }
             foreach (var item in collection)
             {
                 context.DefineVariable(Item, item);

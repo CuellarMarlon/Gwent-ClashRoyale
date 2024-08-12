@@ -1,10 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using System.Net.Mime;
+using System.Reflection;
 
 namespace GwentPlus
 {
 public class Parser
 {
-    private Context context;
+    private Context context = new Context(null);
     private List<Token> _tokens;
     private int _position;
 
@@ -75,7 +77,8 @@ public class Parser
         Expect("DELIMITER");
 
         EffectNode effect = new EffectNode();
-        // Console.WriteLine("abajosddfda");
+
+        Context effectContext = new Context(context);
 
         while (CurrentToken.Value != "}")
         {
@@ -90,6 +93,8 @@ public class Parser
                 effect.Name = CurrentToken.Value;
                 Expect("STRING");
                 Expect("SEPARATOR");
+
+                context.DeffineEffect(effect.Name, effect);
             }
             else if (CurrentToken.Value == "Params")
             {
@@ -103,15 +108,24 @@ public class Parser
                     Expect("IDENTIFIER"); // params name
                     Expect("ASSIGNMENTOPERATOR");
                     var paramType = CurrentToken.Value;
-                    Expect("NUMBER"); // param type
+                    Expect("IDENTIFIER"); // param type
                     effect.Params[paramName] = paramType;
-                    if (context.Variables.ContainsKey(paramName))
+                    
+                    if (effectContext.Variables.ContainsKey(paramName))
                     {
-                        context.SetVariable(paramName, paramType);
+                        effectContext.SetVariable(paramName, paramType);
+                    }
+                    else if (paramType == "Number")
+                    {
+                        effectContext.DefineVariable(paramName, 0);
+                    }
+                    else if (paramType == "Bool")
+                    {
+                        effectContext.DefineVariable(paramName, false);
                     }
                     else
                     {
-                        context.DefineVariable(paramName, paramType);
+                        throw new Exception($"El tipo de dato no esta permitido para {paramName}.");
                     }
                     
                     if (CurrentToken.Value == ",")
@@ -140,7 +154,7 @@ public class Parser
                     Expect("LAMBDAOPERATOR");
 
                     // Aquí es donde llamamos a ParseActionBody para manejar el cuerpo de Action
-                    effect.Actions = ParseActionBody(); 
+                    effect.Actions = ParseActionBody(effectContext); 
                 }
                 Expect("DELIMITER");
 
@@ -159,7 +173,7 @@ public class Parser
         return effect;
     }
 
-    private List<ASTNode> ParseActionBody()
+    private List<ASTNode> ParseActionBody(Context currentContext)
     {
         List<ASTNode> statements = new List<ASTNode>();
 
@@ -169,23 +183,23 @@ public class Parser
         {
             if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == ".")
             {
-                statements.Add(ParseMemberAccess());
+                statements.Add(ParseMemberAccess(currentContext));
             }
             else if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Type == "ASSIGNMENTOPERATOR")
             {
-                statements.Add(ParseAssignment(null));
+                statements.Add(ParseAssignment(null, currentContext));
             }
             else if (CurrentToken.Value == "while")
             {
-                statements.Add(ParseWhile());
+                statements.Add(ParseWhile(currentContext));
             }
             else if (CurrentToken.Value == "if")
             {
-                statements.Add(ParseIf());
+                statements.Add(ParseIf(currentContext));
             }
             else if (CurrentToken.Value == "for")
             {
-                statements.Add(ParseFor());
+                statements.Add(ParseFor(currentContext));
             }
             else
             {
@@ -196,7 +210,7 @@ public class Parser
         return statements;
     }
 
-    private ASTNode ParseMemberAccess()
+    private ASTNode ParseMemberAccess(Context currentContext)
     {
         string objectName = CurrentToken.Value;
         List<string> accessChain = new List<string>{objectName};
@@ -230,14 +244,14 @@ public class Parser
         }
         else if (PeekNextToken().Type == "ASSIGNMENTOPERATOR")
         {
-            var assignmentNode = ParseAssignment(accessChain);
+            var assignmentNode = ParseAssignment(accessChain, currentContext);
             return assignmentNode ;
         }
 
         return new MemberAccessNode { AccessChain = accessChain, Arguments = arguments , IsProperty = isProperty };
     }
 
-    private AssignmentNode ParseAssignment(List<string> accessChain)
+    private AssignmentNode ParseAssignment(List<string> accessChain, Context currentContext)
     {
         // Manejo de asignaciones
         string variableName = CurrentToken.Value;
@@ -247,21 +261,21 @@ public class Parser
 
         if (PeekNextToken().Value == ".")
         {
-            var valueMemberAcces = ParseMemberAccess();
+            var valueMemberAcces = ParseMemberAccess(currentContext);
             return new AssignmentNode { VariableName = variableName, ValueExpression = valueMemberAcces, AccessChain = accessChain, Operator = _operator };
         } 
         else 
         {
-            var valueExpression = ParseExpression(ParseExpressionTokens(), false);
+            var valueExpression = ParseExpression(ParseExpressionTokens(), false, currentContext);
             Expect("SEMICOLON"); //Check
             AssignmentNode assignmentNode = new AssignmentNode { VariableName = variableName, ValueExpression = valueExpression, AccessChain = accessChain, Operator = _operator };
-            if (context.Variables.ContainsKey(variableName))
+            if (currentContext.Variables.ContainsKey(variableName))
             {
-                context.SetVariable(variableName, valueExpression);
+                currentContext.SetVariable(variableName, valueExpression.Evaluate(currentContext));
             }
             else
             {
-                context.DefineVariable(variableName, valueExpression);
+                currentContext.DefineVariable(variableName, valueExpression.Evaluate(currentContext));
             }
 
             return assignmentNode;
@@ -324,22 +338,21 @@ public class Parser
         return expressionTokens;
     }
 
-    private ExpressionNode ParseExpression(List<Token> expressionTokens, bool isCondition)
+    private ExpressionNode ParseExpression(List<Token> expressionTokens, bool isCondition, Context currentContext)
     {
         var postfixTokens = ConvertToPostfix(expressionTokens); // Convierta la entrada infija a postfija.
-        var ast = ParsePostfixExpression(postfixTokens);
+        var ast = ParsePostfixExpression(postfixTokens, currentContext);
         
-        if (!isCondition)
+        if (isCondition && ast.Evaluate(currentContext).GetType() != typeof(bool))
         {   
-            if (ast.Evaluate(context).GetType() == typeof(bool)) return new BooleanLiteralNode { Value = (bool)ast.Evaluate(context) };
-            else return new NumberLiteralNode { Value = (int)ast.Evaluate(context) };
+           throw new Exception("La expresion de condicion debe evaluar a un booleano.");
         }
         
         return ast;
         
     }
 
-    private ExpressionNode ParsePostfixExpression(List<Token> postfixTokens)
+    private ExpressionNode ParsePostfixExpression(List<Token> postfixTokens, Context currentContext)
     {
         Stack<ExpressionNode> stack = new Stack<ExpressionNode>();
 
@@ -355,9 +368,10 @@ public class Parser
             }
             else if (token.Type == "IDENTIFIER")
             {
-                if (context.Variables.ContainsKey(token.Value))
+                if (currentContext.Variables.ContainsKey(token.Value))
                 {
-                    stack.Push(new VariableReferenceNode { Name = token.Value });
+                    var variableValue = currentContext.GetVariable(token.Value);
+                    stack.Push(new VariableReferenceNode { Name = token.Value, Value = variableValue });
                 }
                 else 
                 {
@@ -418,7 +432,7 @@ public class Parser
         return output;
     }
 
-    private WhileNode ParseWhile()
+    private WhileNode ParseWhile(Context currentContext)
     {
         Expect("KEYWORD"); // while
         Expect("DELIMITER");
@@ -426,7 +440,7 @@ public class Parser
         var whileNode = new WhileNode();
 
         // Parsear la condición
-        whileNode.Condition = ParseExpression(ParseExpressionTokens(), true);
+        whileNode.Condition = ParseExpression(ParseExpressionTokens(), true, currentContext);
 
         Expect("DELIMITER"); // Expect the delimiter after the condition "("
 
@@ -436,11 +450,11 @@ public class Parser
         {
             if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == ".")
             {
-                whileNode.Body.Add(ParseMemberAccess());
+                whileNode.Body.Add(ParseMemberAccess(currentContext));
             }
             else if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Type == "ASSIGNMENTOPERATOR")
             {
-                whileNode.Body.Add(ParseAssignment(null));
+                whileNode.Body.Add(ParseAssignment(null, currentContext));
             }
             else if (CurrentToken.Value == "while" && PeekNextToken().Value == "(")
             {
@@ -448,15 +462,15 @@ public class Parser
             }
             else if (CurrentToken.Value == "while")
             {
-                whileNode.Body.Add(ParseWhile());
+                whileNode.Body.Add(ParseWhile(currentContext));
             }
             else if (CurrentToken.Value == "if")
             {
-                whileNode.Body.Add(ParseIf());
+                whileNode.Body.Add(ParseIf(currentContext));
             }
             else if (CurrentToken.Value == "for")
             {
-                whileNode.Body.Add(ParseFor());
+                whileNode.Body.Add(ParseFor(currentContext));
             }
             else
             {
@@ -469,7 +483,7 @@ public class Parser
         return whileNode;
     }
 
-    private IfNode ParseIf()
+    private IfNode ParseIf(Context currentContext)
     {
         Expect("KEYWORD"); // if
         Expect("DELIMITER");
@@ -477,7 +491,7 @@ public class Parser
         var ifNode = new IfNode();
 
         // Parsear la condición
-        ifNode.Condition = ParseExpression(ParseExpressionTokens(), true);
+        ifNode.Condition = ParseExpression(ParseExpressionTokens(), true, currentContext);
 
         Expect("DELIMITER"); // Expect the delimiter after the condition ")"
 
@@ -488,23 +502,23 @@ public class Parser
             // Aquí puedes agregar más tipos de nodos que quieras manejar en el cuerpo
             if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == ".")
             {
-                ifNode.Body.Add(ParseMemberAccess());
+                ifNode.Body.Add(ParseMemberAccess(currentContext));
             }
             else if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Type == "ASSIGNMENTOPERATOR")
             {
-                ifNode.Body.Add(ParseAssignment(null));
+                ifNode.Body.Add(ParseAssignment(null, currentContext));
             }
             else if (CurrentToken.Value == "while")
             {
-                ifNode.Body.Add(ParseWhile());
+                ifNode.Body.Add(ParseWhile(currentContext));
             }
             else if (CurrentToken.Value == "if")
             {
-                ifNode.Body.Add(ParseIf());
+                ifNode.Body.Add(ParseIf(currentContext));
             }
             else if (CurrentToken.Value == "for")
             {
-                ifNode.Body.Add(ParseFor());
+                ifNode.Body.Add(ParseFor(currentContext));
             }
             else
             {
@@ -523,23 +537,23 @@ public class Parser
             {
                 if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == ".")
                 {
-                    ifNode.ElseBody.Add(ParseMemberAccess());
+                    ifNode.ElseBody.Add(ParseMemberAccess(currentContext));
                 }
                 else if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Type == "ASSIGNMENTOPERATOR")
                 {
-                    ifNode.ElseBody.Add(ParseAssignment(null));
+                    ifNode.ElseBody.Add(ParseAssignment(null, currentContext));
                 }
                 else if (CurrentToken.Value == "while")
                 {
-                    ifNode.Body.Add(ParseWhile());
+                    ifNode.Body.Add(ParseWhile(currentContext));
                 }
                 else if (CurrentToken.Value == "if")
                 {
-                    ifNode.Body.Add(ParseIf());
+                    ifNode.Body.Add(ParseIf(currentContext));
                 }
                 else if (CurrentToken.Value == "for")
                 {
-                    ifNode.Body.Add(ParseFor());
+                    ifNode.Body.Add(ParseFor(currentContext));
                 }
                 else
                 {
@@ -552,7 +566,7 @@ public class Parser
         return ifNode;
     }
 
-    private ForNode ParseFor()
+    private ForNode ParseFor(Context currentContext)
     {
         Expect("KEYWORD"); // for
         Expect("DELIMITER"); // Expect '('
@@ -578,23 +592,23 @@ public class Parser
         {
             if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == ".")
             {
-                forNode.Body.Add(ParseMemberAccess());
+                forNode.Body.Add(ParseMemberAccess(currentContext));
             }
             else if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Type == "ASSIGNMENTOPERATOR")
             {
-                forNode.Body.Add(ParseAssignment(null));
+                forNode.Body.Add(ParseAssignment(null, currentContext));
             }
             else if (CurrentToken.Value == "while")
             {
-                forNode.Body.Add(ParseWhile());
+                forNode.Body.Add(ParseWhile(currentContext));
             }
             else if (CurrentToken.Value == "if")
             {
-                forNode.Body.Add(ParseIf());
+                forNode.Body.Add(ParseIf(currentContext));
             }
             else if (CurrentToken.Value == "for")
             {
-                forNode.Body.Add(ParseFor());
+                forNode.Body.Add(ParseFor(currentContext));
             }
             else
             {
@@ -629,6 +643,8 @@ public class Parser
                 Expect("ASSIGNMENTOPERATOR");
                 card.Name = CurrentToken.Value;
                 Expect("STRING");
+
+                context.DeffineCard(card.Name, card);
             }
             else if (CurrentToken.Value == "Faction")
             {
@@ -737,14 +753,18 @@ public class Parser
 
         while (CurrentToken.Value != "}")
         {
-            // Console.WriteLine("ParseCardEffect");
 
             if (CurrentToken.Value == "Name")
             {
                 Expect("IDENTIFIER"); // Name
                 Expect("ASSIGNMENTOPERATOR");
+                if (!context.Effects.ContainsKey(CurrentToken.Value))
+                {
+                    throw new Exception($"El effecto {CurrentToken.Value} no ha sido construido anteriormente.");
+                }
                 CardEffect.Name = CurrentToken.Value;
                 Expect("STRING");
+                
             }
             else if (CurrentToken.Value == "Amount")
             {
