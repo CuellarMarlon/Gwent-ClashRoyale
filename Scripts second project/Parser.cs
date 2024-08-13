@@ -811,8 +811,16 @@ public class Parser
             {
                 Expect("IDENTIFIER"); // Predicate
                 Expect("ASSIGNMENTOPERATOR");
-                selector.Predicate = CurrentToken.Value;
-                Expect("NUMBER");
+                Expect("DELIMITER");
+                Expect("IDENTIFIER");
+                Expect("DELIMITER");
+                Expect("LAMBDAOPERATOR");
+                while(CurrentToken.Value != "}" && CurrentToken.Value != ",")
+                {
+                    selector.Predicate += CurrentToken.Value;
+                    NextToken();
+                }
+
             }
 
             if (CurrentToken.Value == ",")
