@@ -154,7 +154,7 @@ public class Parser
                     Expect("LAMBDAOPERATOR");
 
                     // Aquí es donde llamamos a ParseActionBody para manejar el cuerpo de Action
-                    effect.Actions = ParseActionBody(effectContext); 
+                    effect.Actions.Children = ParseActionBody(effectContext); 
                 }
                 Expect("DELIMITER");
 
@@ -682,9 +682,31 @@ public class Parser
                 Expect("ASSIGNMENTOPERATOR");
                 Expect("DELIMITER");
                 
+                bool isFirst = true;
                 while (CurrentToken.Value != "]")
                 {
-                    card.OnActivation.Add(ParseActivation());
+                    card.OnActivation.Add(ParseActivation(isFirst));
+                    isFirst = false;
+                    if (CurrentToken.Value == "}")
+                    {
+                        Expect("DELIMITER");
+                    }
+                    if (CurrentToken.Value == ",")
+                    {
+                        Expect("SEPARATOR");
+                    }
+                    if(CurrentToken.Value == "}")
+                    {
+                        Expect("DELIMITER");
+                    }
+                    if (CurrentToken.Value == ",")
+                    {
+                        Expect("SEPARATOR");
+                    }
+                    if (CurrentToken.Value == "}")
+                    {
+                        Expect("DELIMITER");
+                    }
                     if (CurrentToken.Value == ",")
                     {
                         Expect("SEPARATOR");
@@ -704,13 +726,18 @@ public class Parser
         return card;
     }
 
-    private ActivationNode ParseActivation()
+    private ActivationNode ParseActivation(bool isFirst)
     {
+        if (!isFirst) 
+        {
+            Expect("IDENTIFIER");
+            Expect("ASSIGNMENTOPERATOR");
+        }
         Expect("DELIMITER");
-
+        
         ActivationNode activation = new ActivationNode();
 
-        while (CurrentToken.Value != "}")
+        while (CurrentToken.Value != "}" && CurrentToken.Value != "PostAction")
         {
             // Console.WriteLine("ParseActivation");
 
@@ -726,20 +753,14 @@ public class Parser
                 Expect("ASSIGNMENTOPERATOR");
                 activation.Selector = ParseSelector();
             }
-            else if (CurrentToken.Value == "PostAction")
-            {
-                Expect("IDENTIFIER"); // PostAction
-                Expect("ASSIGNMENTOPERATOR");
-                activation.PostAction = ParsePostAction();
-            }
 
             if (CurrentToken.Value == ",")
             {
                 Expect("SEPARATOR");
             }
+
         }
 
-        Expect("DELIMITER");
         return activation;
     }
 
@@ -766,12 +787,27 @@ public class Parser
                 Expect("STRING");
                 
             }
-            else if (CurrentToken.Value == "Amount")
+            else if (CurrentToken.Type == "IDENTIFIER")
             {
-                Expect("IDENTIFIER"); // Amount
-                Expect("ASSIGNMENTOPERATOR");
-                CardEffect.Amount = CurrentToken.Value;
-                Expect("NUMBER");
+                while(CurrentToken.Value != "}")
+                {   
+                    Expect("IDENTIFIER"); 
+                    Expect("ASSIGNMENTOPERATOR");
+                    CardEffect.Params.Add(CurrentToken.Value);
+                    if(CurrentToken.Type == "NUMBER")
+                    {
+                        Expect("NUMBER");
+                    }
+                    else if (CurrentToken.Type == "BOOLEAN")
+                    {
+                        Expect("BOOLEAN");
+                    }
+                    else if (CurrentToken.Type == "STRING")
+                    {
+                        Expect("STRING");
+                    }
+                    Expect("SEPARATOR");
+                }
             }
             if (CurrentToken.Value == ",")
             {
@@ -809,17 +845,36 @@ public class Parser
             }
             else if (CurrentToken.Value == "Predicate")
             {
+                PredicateNode predicateNode = new PredicateNode();
                 Expect("IDENTIFIER"); // Predicate
                 Expect("ASSIGNMENTOPERATOR");
                 Expect("DELIMITER");
                 Expect("IDENTIFIER");
                 Expect("DELIMITER");
                 Expect("LAMBDAOPERATOR");
-                while(CurrentToken.Value != "}" && CurrentToken.Value != ",")
+                Expect("IDENTIFIER");
+                Expect("ACCESS");
+
+                predicateNode.LeftMember = CurrentToken.Value;
+                Expect("IDENTIFIER");
+                predicateNode.Operator = CurrentToken.Value;
+                Expect("RELATIONALOPERATOR");
+                if(CurrentToken.Type == "NUMBER")
                 {
-                    selector.Predicate += CurrentToken.Value;
-                    NextToken();
+                    predicateNode.RightMember = int.Parse(CurrentToken.Value);
+                    Expect("NUMBER");
                 }
+                else if(CurrentToken.Type == "STRING")
+                {
+                    predicateNode.RightMember = CurrentToken.Value.Substring(1, CurrentToken.Value.Length - 2);
+                    Expect("STRING");
+                }
+                else
+                {
+                    throw new Exception($"Tipo de valor no permito para 'Predicate' se esperaba 'number' o 'string' pero se obtuvo {CurrentToken.Type}");
+                }               
+                
+                selector.Predicate = predicateNode;
 
             }
 
@@ -831,40 +886,6 @@ public class Parser
 
         Expect("DELIMITER");
         return selector;
-    }
-
-    private PostActionNode ParsePostAction()
-    {
-        Expect("DELIMITER");
-
-        PostActionNode postAction = new PostActionNode();
-
-        while (CurrentToken.Value != "}")
-        {
-            // Console.WriteLine("ParsePostAction");
-
-            if (CurrentToken.Value == "Type")
-            {
-                Expect("IDENTIFIER"); // Type
-                Expect("ASSIGNMENTOPERATOR");
-                postAction.Type = CurrentToken.Value;
-                Expect("STRING");
-            }
-            else if (CurrentToken.Value == "Selector")
-            {
-                Expect("IDENTIFIER"); // Selector
-                Expect("ASSIGNMENTOPERATOR");
-                postAction.Selector = ParseSelector();
-            }
-
-            if (CurrentToken.Value == ",")
-            {
-                Expect("SEPARATOR");
-            }
-        }
-
-        Expect("DELIMITER");
-        return postAction;
     }
 }
 }
