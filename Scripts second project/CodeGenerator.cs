@@ -1,245 +1,247 @@
-using System.Text;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace GwentPlus
 {
     public class CodeGenerator
     {
-        private StringBuilder _code;
-        private List<string> _effectMethods; // Lista para almacenar métodos generados
-        private bool  _inAssignment;
+        private List<ASTNode> _nodes;
+        public List<Card> _cards = new List<Card>(); // Almacena las cartas creadas
+        public Context context = new Context(null!); //para llevar las variables
 
-        public CodeGenerator()
+        public CodeGenerator(List<ASTNode> nodes)
         {
-            _code = new StringBuilder();
-            _effectMethods = new List<string>();
-            _inAssignment = false;
+            _nodes = nodes;
         }
 
-        public List<string> GenerateCode(List<ASTNode> nodes)
+        public void GenerateCode(string outputPath)
         {
-            foreach (var node in nodes)
+            using (StreamWriter writer = new StreamWriter(outputPath))
             {
-                GenerateNodeCode(node);
-            }
-            return _effectMethods; // Retornar la lista de métodos generados
-        }
+                writer.WriteLine("namespace GwentPlus");
+                writer.WriteLine("{");
 
-        private void GenerateNodeCode(ASTNode node)
-        {
-            switch (node)
-            {
-                case EffectNode effectNode:
-                    GenerateEffectCode(effectNode);
-                    break;
-                case CardNode cardNode:
-                    GenerateCardCode(cardNode);
-                    break;
-                case ActivationNode activationNode:
-                    GenerateActivationCode(activationNode);
-                    break;
-                case SelectorNode selectorNode:
-                    GenerateSelectorCode(selectorNode);
-                    break;
-                case PostActionNode postActionNode:
-                    GeneratePostActionCode(postActionNode);
-                    break;
-                case ActionNode actionNode:
-                    GenerateActionCode(actionNode);
-                    break;
-                case NumberLiteralNode numberLiteralNode:
-                    GenerateNumberLiteralCode(numberLiteralNode);
-                    break;
-                case BooleanLiteralNode booleanLiteralNode:
-                    GenerateBooleanLiteralCode(booleanLiteralNode);
-                    break;
-                case VariableReferenceNode variableReferenceNode:
-                    GenerateVariableReferenceCode(variableReferenceNode);
-                    break;
-                case BinaryOperationNode binaryOperationNode:
-                    GenerateBinaryOperationCode(binaryOperationNode);
-                    break;
-                case AssignmentNode assignmentNode:
-                    GenerateAssignmentCode(assignmentNode);
-                    break;
-                case MemberAccessNode memberAccessNode:
-                    GenerateMemberAccessCode(memberAccessNode);
-                    break;
-                case WhileNode whileNode:
-                    GenerateWhileCode(whileNode);
-                    break;
-                case IfNode ifNode:
-                    GenerateIfCode(ifNode);
-                    break;
-                case ForNode forNode:
-                    GenerateForCode(forNode);
-                    break;
-                default:
-                    throw new NotSupportedException($"Tipo de nodo no soportado: {node.GetType()}");
-            }
-        }
 
-        private void GenerateEffectCode(EffectNode effect)
-        {
-            var methodName = effect.Name.Substring(1, effect.Name.Length - 2);
-            _code.Clear();
-            _code.AppendLine($"public void {methodName}(Context context, List<Card> targets) {{");
-            foreach (var action in effect.Actions)
-            {
-                GenerateNodeCode(action);
-            }
-            _code.AppendLine("}");
-            _effectMethods.Add(_code.ToString());
-        }
+                // Escribir la definición de la clase EffectCreated
+                writer.WriteLine("public class EffectCreated");
+                writer.WriteLine("{");
 
-        private void GenerateCardCode(CardNode card)
-        {
-            _code.AppendLine($"public class {card.Name.Substring(1, card.Name.Length - 2)}Card {{");
-            _code.AppendLine($"    public string Type {{ get; set; }} = \"{card.Type}\";");
-            _code.AppendLine($"    public string Faction {{ get; set; }} = \"{card.Faction}\";");
-            _code.AppendLine($"    public int Power {{ get; set; }} = {card.Power};");
-            _code.AppendLine($"    public List<string> Range {{ get; set; }} = new List<string> {{ {string.Join(", ", card.Range)} }};");
-
-            foreach (var activation in card.OnActivation)
-            {
-                GenerateNodeCode(activation);
-            }
-            _code.AppendLine("}");
-        }
-
-        private void GenerateActivationCode(ActivationNode activation)
-        {
-            _code.AppendLine("public void OnActivate(Context context) {");
-            if (activation.Selector != null)
-            {
-                GenerateNodeCode(activation.Selector);
-            }
-            if (activation.PostAction != null)
-            {
-                GenerateNodeCode(activation.PostAction);
-            }
-            _code.AppendLine("}");
-        }
-
-        private void GenerateSelectorCode(SelectorNode selector)
-        {
-            _code.AppendLine($"// Selector: Source = {selector.Source}, Single = {selector.Single}, Predicate = {selector.Predicate}");
-        }
-
-        private void GeneratePostActionCode(PostActionNode postAction)
-        {
-            _code.AppendLine($"// PostAction: Type = {postAction.Type}");
-            if (postAction.Selector != null)
-            {
-                GenerateNodeCode(postAction.Selector);
-            }
-        }
-
-        private void GenerateActionCode(ActionNode action)
-        {
-            foreach (var child in action.Children)
-            {
-                GenerateNodeCode(child);
-            }
-        }
-
-        private void GenerateNumberLiteralCode(NumberLiteralNode number)
-        {
-            _code.Append($"{number.Value}");
-        }
-
-        private void GenerateBooleanLiteralCode(BooleanLiteralNode boolean)
-        {
-            _code.AppendLine($"{boolean.Value.ToString().ToLower()}");
-        }
-
-        private void GenerateVariableReferenceCode(VariableReferenceNode variable)
-        {
-            _code.Append($"{variable.Name}");
-        }
-
-        private void GenerateBinaryOperationCode(BinaryOperationNode binary)
-        {
-            _code.Append("(");
-            GenerateNodeCode(binary.Left);
-            _code.Append($" {binary.Operator} ");
-            GenerateNodeCode(binary.Right);
-            _code.Append(")");
-        }
-
-        private void GenerateAssignmentCode(AssignmentNode assignment)
-        {
-            _inAssignment = true;
-            string access = "";
-            if (assignment.AccessChain != null)
-            {
-                for (int i = 0; i < assignment.AccessChain.Count - 1; i++)
+                foreach (var node in _nodes)
                 {
-                    access += assignment.AccessChain[i] + ".";
+                    if (node is EffectNode effectNode)
+                    {
+                        GenerateEffectMethod(writer, effectNode);
+                    }
+                    else if (node is CardNode cardNode)
+                    {
+                        CreateCardInstance(cardNode);
+                    }
                 }
+
+                writer.WriteLine("}");
+                writer.WriteLine("}");
+
             }
-            _code.Append($"{assignment.VariableName} {assignment.Operator} ");
-            GenerateNodeCode(assignment.ValueExpression);
-            _code.AppendLine(";");
-            _inAssignment = false;
         }
 
-        private void GenerateMemberAccessCode(MemberAccessNode memberAccess)
+        private void GenerateEffectMethod(StreamWriter writer, EffectNode effectNode)
         {
-            var member = string.Join(".", memberAccess.AccessChain);
-            if (memberAccess.IsProperty)
+            string parametersString;
+            // Genera una lista de parámetros basada en el diccionario Params del EffectNode
+            if(effectNode.Params.Count != 0)
             {
-                if (_inAssignment) _code.Append($"{member}");
-                else _code.AppendLine($"{member};");
+                var parameters = new List<string>();
+                foreach (var param in effectNode.Params)
+                {
+                    var type = param.Value;
+                    if (type == "Number")
+                    {
+                        parameters.Add($"int {param.Key}");
+                    }
+                    else if (type == "String")
+                    {
+                        parameters.Add($"string {param.Key}");
+                    }
+                    else if (type == "Bool")
+                    {
+                        parameters.Add($"bool {param.Key}");
+                    }
+
+                }
+
+                parametersString = ", " + string.Join(", ", parameters);
             }
             else
             {
-                var args = string.Join(", ", memberAccess.Arguments);
-                if (_inAssignment) _code.Append($"{member}({args})");
-                else _code.AppendLine($"{member}({args});");
+                parametersString = "";
             }
+
+            writer.WriteLine($"    public void {effectNode.Name.Substring(1, effectNode.Name.Length - 2)}Effect(CardList targets, GameContext context {parametersString})");
+            writer.WriteLine("    {");
+            writer.WriteLine("      Console.WriteLine(\"Metodo utilizado\");");
+
+            foreach (var action in effectNode.Actions.Children)
+            {
+                GenerateActionCode(writer, action);
+            }
+
+            writer.WriteLine("    }");
+            writer.WriteLine();
         }
 
-        private void GenerateWhileCode(WhileNode whileNode)
+        private void GenerateActionCode(StreamWriter writer, ASTNode action)
         {
-            _code.Append($"while (");
-            GenerateNodeCode(whileNode.Condition);
-            _code.AppendLine($") {{");
-            foreach (var statement in whileNode.Body)
+            if (action is AssignmentNode assignmentNode)
             {
-                GenerateNodeCode(statement);
-            }
-            _code.AppendLine("}");
-        }
-
-        private void GenerateIfCode(IfNode ifNode)
-        {
-            _code.Append($"if (");
-            GenerateNodeCode(ifNode.Condition);
-            _code.AppendLine($") {{");
-            foreach (var statement in ifNode.Body)
-            {
-                GenerateNodeCode(statement);
-            }
-            _code.AppendLine("}");
-            if (ifNode.ElseBody.Count > 0)
-            {
-                _code.AppendLine("else {");
-                foreach (var statement in ifNode.ElseBody)
+                string variableDeclaration = context.Variables.ContainsKey(assignmentNode.VariableName) ? "" : "var";
+                string access = "";
+                if (assignmentNode.AccessChain != null)
                 {
-                    GenerateNodeCode(statement);
+                    for (int i = 0; i < assignmentNode.AccessChain.Count; i++)
+                    {
+                        if (i < assignmentNode.AccessChain.Count - 1)
+                        access += assignmentNode.AccessChain[i] + ".";
+                        else
+                        access += assignmentNode.AccessChain[i];
+                    }
+                    variableDeclaration = "";
                 }
-                _code.AppendLine("}");
+                else access = assignmentNode.VariableName;
+
+                writer.WriteLine($"        {variableDeclaration} {access} {assignmentNode.Operator} {GenerateValueExpressionCode(assignmentNode.ValueExpression)};");
+                if (!context.Variables.ContainsKey(assignmentNode.VariableName))
+                {
+                    context.DefineVariable(assignmentNode.VariableName, null); // Asumiendo que el valor se asignará más adelante o es irrelevante en este contexto
+                }
             }
+            else if (action is IfNode ifNode)
+            {
+                writer.WriteLine($"        if ({GenerateValueExpressionCode(ifNode.Condition)})");
+                writer.WriteLine("        {");
+                foreach (var statement in ifNode.Body)
+                {
+                    GenerateActionCode(writer, statement);
+                }
+                writer.WriteLine("        }");
+            }
+            else if (action is WhileNode whileNode)
+            {
+                writer.WriteLine($"        while ({GenerateValueExpressionCode(whileNode.Condition)})");
+                writer.WriteLine("        {");
+                foreach (var statement in whileNode.Body)
+                {
+                    GenerateActionCode(writer, statement);
+                }
+                writer.WriteLine("        }");
+            }
+            else if (action is ForNode forNode)
+            {
+                writer.WriteLine($"        foreach (var {forNode.Item} in {GenerateValueExpressionCode(forNode.Collection)})");
+                writer.WriteLine("        {");
+                foreach (var statement in forNode.Body)
+                {
+                    GenerateActionCode(writer, statement);
+                }
+                writer.WriteLine("        }");
+            }
+            else if (action is MemberAccessNode memberAccessNode)
+            {
+                // Aquí puedes manejar el acceso a miembros y llamadas a métodos
+                if (memberAccessNode.IsProperty)
+                {
+                    // Si es una propiedad, simplemente accede a la propiedad
+                    writer.WriteLine($"        {string.Join(".", memberAccessNode.AccessChain)}");
+                }
+                else
+                {
+                    /// Si no es una propiedad y tiene argumentos, es una llamada a método
+                    string arguments = string.Join(", ", memberAccessNode.Arguments.Select(arg => GenerateValueExpressionCode(arg)));
+                    writer.WriteLine($"        {string.Join(".", memberAccessNode.AccessChain)}({arguments});");
+                }
+            }
+            
+            // Agrega más tipos de nodos según sea necesario
         }
 
-        private void GenerateForCode(ForNode forNode)
+        private string GenerateValueExpressionCode(ASTNode valueExpression)
         {
-            _code.AppendLine($"foreach (var {forNode.Item} in {forNode.Collection.Name}) {{");
-            foreach (var statement in forNode.Body)
+            if (valueExpression is NumberLiteralNode numberLiteral)
             {
-                GenerateNodeCode(statement);
+                return numberLiteral.Value.ToString(); // Asumiendo que Value es un número
             }
-            _code.AppendLine("}");
+            else if (valueExpression is BooleanLiteralNode booleanLiteral)
+            {
+                return booleanLiteral.Value.ToString().ToLower(); // Asumiendo que Value es un bool
+            }
+            else if (valueExpression is VariableReferenceNode variableReferenceNode)
+            {
+                return variableReferenceNode.Name;
+            }
+            else if (valueExpression is BinaryOperationNode binaryOperationNode)
+            {
+                return $"{GenerateValueExpressionCode(binaryOperationNode.Left)} {binaryOperationNode.Operator} {GenerateValueExpressionCode(binaryOperationNode.Right)}";
+            }
+            else if (valueExpression is MemberAccessNode memberAccessNode)
+            {
+                // Aquí puedes manejar el acceso a miembros y llamadas a métodos
+                if (memberAccessNode.IsProperty)
+                {
+                    // Si es una propiedad, simplemente accede a la propiedad
+                    return $"{string.Join(".", memberAccessNode.AccessChain)}";
+                }
+                else
+                {
+                    // Si no es una propiedad y tiene argumentos, es una llamada a método
+                    string arguments = string.Join(", ", memberAccessNode.Arguments.Select(arg => GenerateValueExpressionCode(arg)));
+                    return $"{string.Join(".", memberAccessNode.AccessChain)}({arguments})";
+                }
+            }
+            // Agrega más casos según sea necesario
+
+            // Si no se reconoce el tipo, simplemente devuelve una cadena vacía o un valor predeterminado
+            return "";
+        }
+
+        private void CreateCardInstance(CardNode cardNode)
+        {
+            Card card = new Card
+            {
+                Name = cardNode.Name.Substring(1, cardNode.Name.Length - 2),
+                Type = Enum.Parse<CardType>(cardNode.Type.Substring(1, cardNode.Type.Length - 2)),
+                Faction = Enum.Parse<Faction>(cardNode.Faction.Substring(1, cardNode.Faction.Length - 2)),
+                Power = cardNode.Power,
+                Range = Array.ConvertAll(cardNode.Range.ToArray(), r => (Range)Enum.Parse(typeof(Range), r.Substring(1, r.Length - 2))),
+                OnActivation = new List<Effects>(),
+                EffectCreated = new EffectCreated()
+            };
+
+            // Aquí puedes manejar los efectos de activación si es necesario
+            foreach (var activation in cardNode.OnActivation)
+            {
+                card.OnActivation.Add(CreateEffect(activation));
+            }
+
+            _cards.Add(card); // Almacena la carta creada
+        }
+
+        private Effects CreateEffect(ActivationNode activation)
+        {
+            Effects effect = new Effects
+            {
+                Name = activation.Effect?.Name ?? "DefaultEffectName", // Provide a default value or handle null differently
+                Params = activation.Effect != null ? activation.Effect.Params : new List<object>(),
+                Source = activation.Selector?.Source ?? "DefaultSource",
+                Single = activation.Selector?.Single ?? false,
+                Predicate = new Predicate // Aquí se crea una nueva instancia de Predicate y se asignan sus propiedades
+                {
+                    LeftMember = activation.Selector?.Predicate?.LeftMember ?? "DefaultLeftMember",
+                    Operator = activation.Selector?.Predicate?.Operator ?? "DefaultOperator",
+                    RightMember = activation.Selector?.Predicate?.RightMember ?? "DefaultValue"
+                },                    
+            };
+            
+            return effect;
         }
     }
 }
