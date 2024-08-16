@@ -15,12 +15,12 @@ namespace GwentPlus
     {
         public string Name { get; set; }
         public Dictionary<string, string> Params { get; set; }
-        public List<ASTNode> Actions { get; set; }
+        public ActionNode Actions { get; set; }
 
         public EffectNode()
         {
             Params = new Dictionary<string, string>();
-            Actions = new List<ASTNode>();
+            Actions = new ActionNode();
         }
 
         public override void Print(int indent = 0)
@@ -32,7 +32,7 @@ namespace GwentPlus
                 Console.WriteLine($"{indentation}  Param: {param.Key} = {param.Value}");
             }
             Console.WriteLine($"{indentation}  Action:");
-            foreach (var action in Actions)
+            foreach (var action in Actions.Children)
             {
                 action.Print(indent + 3); 
             }
@@ -85,7 +85,6 @@ namespace GwentPlus
     {
         public CardEffectNode Effect { get; set; }
         public SelectorNode Selector { get; set; }
-        public PostActionNode PostAction { get; set; }
 
         public override void Print(int indent = 0)
         {
@@ -93,7 +92,7 @@ namespace GwentPlus
             Console.WriteLine($"{indentation}Activation:");
             Effect.Print(indent + 2);
             Selector?.Print(indent + 2);
-            PostAction?.Print(indent + 2);
+
         }
 
         public override object Evaluate(Context context)
@@ -106,7 +105,7 @@ namespace GwentPlus
     {
         public string Source { get; set; }
         public bool Single { get; set; }
-        public string Predicate { get; set; }
+        public PredicateNode Predicate { get; set; } = new PredicateNode();
 
         public override void Print(int indent = 0)
         {
@@ -114,7 +113,8 @@ namespace GwentPlus
             Console.WriteLine($"{indentation}Selector:");
             Console.WriteLine($"{indentation}  Source: {Source}");
             Console.WriteLine($"{indentation}  Single: {Single}");
-            Console.WriteLine($"{indentation}  Predicate: {Predicate}");
+            
+            Predicate.Print(indent);
         }
 
         public override object Evaluate(Context context)
@@ -123,36 +123,38 @@ namespace GwentPlus
         }
     }
 
-    public class PostActionNode : ASTNode
+    public class PredicateNode : ASTNode
     {
-        public string Type { get; set; }
-        public SelectorNode Selector { get; set; }
-
-        public override void Print(int indent = 0)
-        {
-            string indentation = new string(' ', indent);
-            Console.WriteLine($"{indentation}PostAction:");
-            Console.WriteLine($"{indentation}  Type: {Type}");
-            Selector?.Print(indent + 2);
-        }
+        public string LeftMember { get; set; }
+        public string Operator { get; set; }
+        public object RightMember { get; set; }
 
         public override object Evaluate(Context context)
         {
             return 0;
+        }
+
+        public override void Print(int indent = 0)
+        {
+            string indentation = new string(' ', indent);
+            Console.WriteLine($"{indentation}Predicate: {LeftMember} {Operator} {RightMember}");
         }
     }
 
     public class CardEffectNode : ASTNode
     {
         public string Name { get; set; }
-        public string Amount { get; set; }
+        public List<object> Params { get; set; } = new List<object>(); 
 
         public override void Print(int indent = 0)
         {
             string indentation = new string(' ', indent);
             Console.WriteLine($"{indentation}Effect:");
             Console.WriteLine($"{indentation}  Name: {Name}");
-            Console.WriteLine($"{indentation}  Amount: {Amount}");
+            foreach (var item in Params)
+            {
+                Console.WriteLine($"{indentation}  Amount: {item}");
+            }
         }
 
         public override object Evaluate(Context context)
