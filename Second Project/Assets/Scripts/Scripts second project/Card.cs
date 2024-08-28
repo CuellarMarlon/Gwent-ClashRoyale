@@ -1,15 +1,19 @@
-
-using System.Buffers;
+using System.Collections.Generic;
+using System;
+using UnityEngine;
 
 namespace GwentPlus
 {
     public enum CardType { Oro, Plata, Clima, Aumento, Despeje, Senuelo, Lider }
     public enum Faction { Faction1, Faction2, Faction3, Faction4 } 
     public enum Range { Melee, Ranged, Siege }
+    
 
-    public class Card 
+    [CreateAssetMenu(fileName = "NewCard", menuName = "Card/Card")]
+    public class Card : ScriptableObject
     {
         public  int Owner;
+        public Sprite Photo;
         public CardType Type;
         public string Name;
         public Faction Faction;

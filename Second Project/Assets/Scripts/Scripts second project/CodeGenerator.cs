@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using UnityEngine;
 
 namespace GwentPlus
 {
@@ -79,7 +81,6 @@ namespace GwentPlus
 
             writer.WriteLine($"    public void {effectNode.Name.Substring(1, effectNode.Name.Length - 2)}Effect(CardList targets, GameContext context {parametersString})");
             writer.WriteLine("    {");
-            writer.WriteLine("      Console.WriteLine(\"Metodo utilizado\");");
 
             foreach (var action in effectNode.Actions.Children)
             {
@@ -137,7 +138,7 @@ namespace GwentPlus
             }
             else if (action is ForNode forNode)
             {
-                writer.WriteLine($"        foreach (var {forNode.Item} in {GenerateValueExpressionCode(forNode.Collection)})");
+                writer.WriteLine($"        foreach (Card {forNode.Item} in {GenerateValueExpressionCode(forNode.Collection)})");
                 writer.WriteLine("        {");
                 foreach (var statement in forNode.Body)
                 {
@@ -205,24 +206,25 @@ namespace GwentPlus
 
         private void CreateCardInstance(CardNode cardNode)
         {
-            Card card = new Card
-            {
-                Name = cardNode.Name.Substring(1, cardNode.Name.Length - 2),
-                Type = Enum.Parse<CardType>(cardNode.Type.Substring(1, cardNode.Type.Length - 2)),
-                Faction = Enum.Parse<Faction>(cardNode.Faction.Substring(1, cardNode.Faction.Length - 2)),
-                Power = cardNode.Power,
-                Range = Array.ConvertAll(cardNode.Range.ToArray(), r => (Range)Enum.Parse(typeof(Range), r.Substring(1, r.Length - 2))),
-                OnActivation = new List<Effects>(),
-                EffectCreated = new EffectCreated()
-            };
+            // Crea una nueva instancia de CardData
+            Card cardData = ScriptableObject.CreateInstance<Card>();
+
+            // Asigna las propiedades
+            cardData.Name = cardNode.Name.Substring(1, cardNode.Name.Length - 2);
+            cardData.Type = (CardType)Enum.Parse(typeof(CardType), cardNode.Type.Substring(1, cardNode.Type.Length - 2));
+            cardData.Faction = (Faction)Enum.Parse(typeof(Faction), cardNode.Faction.Substring(1, cardNode.Faction.Length - 2));
+            cardData.Power = cardNode.Power;
+            cardData.Range = Array.ConvertAll(cardNode.Range.ToArray(), r => (Range)Enum.Parse(typeof(Range), r.Substring(1, r.Length - 2)));
+            cardData.OnActivation = new List<Effects>();
+            cardData.EffectCreated = new EffectCreated();
 
             // Aquí puedes manejar los efectos de activación si es necesario
             foreach (var activation in cardNode.OnActivation)
             {
-                card.OnActivation.Add(CreateEffect(activation));
+                cardData.OnActivation.Add(CreateEffect(activation));
             }
 
-            _cards.Add(card); // Almacena la carta creada
+            _cards.Add(cardData);
         }
 
         private Effects CreateEffect(ActivationNode activation)

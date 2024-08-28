@@ -1,10 +1,10 @@
-using System;
+ using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 
 namespace GwentPlus
 {
-    public abstract class ASTNode
+    public abstract class ASTNode 
     {
         public abstract void Print(int indent = 0);
         public abstract object Evaluate(Context context);

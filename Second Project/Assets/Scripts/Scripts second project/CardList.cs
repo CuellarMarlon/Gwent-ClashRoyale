@@ -1,20 +1,23 @@
-
+using System;
+using System.Linq;
 using System.Collections;
+using System.Collections.Generic;
+
 
 namespace GwentPlus
 {
     public class CardList : IEnumerable<Card>
     {
-        protected List<Card> cards = new List<Card>(); //Lista para almecenar las cartas  
+        protected List<Card> cards = new List<Card>();
 
-        public IEnumerator<Card> GetEnumerator()
+        public IEnumerator GetEnumerator()
         {
             return cards.GetEnumerator();
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        IEnumerator<Card> IEnumerable<Card>.GetEnumerator() // This line is redundant and can be removed
         {
-            return GetEnumerator();
+            return cards.GetEnumerator();
         }
 
         //Devuelve todas las cartas que cumplen con un predicado
@@ -53,7 +56,7 @@ namespace GwentPlus
         //Mezcla la lista
         public void Shuffle()
         {
-            Random rng = new Random();
+            System.Random rng = new System.Random();
             int n = cards.Count;
             while (n > 1)
             {
@@ -69,6 +72,16 @@ namespace GwentPlus
         public void Add(Card card)
         {
             cards.Add(card);
+        }
+
+        public void Clear()
+        {
+            cards.Clear();
+        } 
+
+        public void AddRange(List<Card> cards)
+        {
+            cards.AddRange();
         }
 
         

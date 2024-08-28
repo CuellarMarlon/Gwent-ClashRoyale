@@ -1,15 +1,19 @@
-using System.ComponentModel.DataAnnotations;
-using System.Net.Mime;
-using System.Reflection;
+using System.Collections.Generic;
+using System;
+using System.Linq;
+using TMPro;
+using UnityEngine;
 
 namespace GwentPlus
 {
-public class Parser
+public class Parser : MonoBehaviour
 {
-    private Context context = new Context(null);
-    private List<Token> _tokens;
-    private int _position;
+    private Context context = new Context(null); // Contexto para almacenar y controlar variables 
+    private List<Token> _tokens; // Lista de tokens a analizar 
+    private int _position; // Posicion actual en la lista de tokens
+    public TextMeshProUGUI errorText; // Objeto de tipo texto para mostrar los errores
 
+    // Diccionario de operadores con su precedencia y son asociativos a la derecha
     public static readonly Dictionary<string,(int precedence, bool rightAssociative)> Operators = new()
     {
         { "+", (4, false) },
@@ -35,142 +39,179 @@ public class Parser
         _position = 0;
     }
     
+    // Obtener el token actual
     private Token CurrentToken => _position < _tokens.Count ? _tokens[_position] : null;
 
+    // Avanzar al siguiente token 
     private void NextToken() => _position++;
+
+    // Mirar el siguiente token sin avanzar 
     private Token PeekNextToken() => _position + 1 < _tokens.Count ? _tokens[_position + 1] : null;
 
+    // Esperar un token especifico y avanza si se encuentra
     private void Expect(string type)
     {
         if (CurrentToken?.Type != type)
         {
-            throw new Exception($"Expected {type}, but got {CurrentToken?.Type}");
+            ShowError($"Expected {type}, but got {CurrentToken?.Type}");
         }
-        NextToken();
+        else 
+        {
+            NextToken();
+        }
     }
 
+    // Mostrar mensaje de error
+    private void ShowError(string message)
+    {
+        if (errorText != null)
+        {
+            errorText.text = message; // Actualiza el texto del TextMeshProUGUI con el mensaje de error
+        }
+        else
+        {
+            Debug.LogError("TextMeshProUGUI no asignado en el Inspector.");
+        }
+
+        throw new Exception(message);
+    }
+
+    // Metodo principal para iniciar el analisis y construir el AST
     public List<ASTNode> Parse()
     {
         List<ASTNode> nodes = new List<ASTNode>();
         
+        // Procesar todos los tokens hasta que no halla mas 
         while (CurrentToken != null)
         {   
-            // Console.WriteLine(CurrentToken.Value);
             if (CurrentToken.Value == "effect")
             {
-                nodes.Add(ParseEffect());
+                nodes.Add(ParseEffect()); // Analizar un effeto
             }
             else if (CurrentToken.Value == "card")
             {
-                nodes.Add(ParseCard());
+                nodes.Add(ParseCard()); // Anlizar una carta 
             }
-            // Console.WriteLine("abajo");
+            //implementar una exepcion para cuando no se cumpla
         }
-            // Console.WriteLine("mas abajo");
 
-        return nodes;
+        return nodes; // Devolver la lista de nodos de AST 
     }
 
+    // Analizar una declaracion de effecto 
     private EffectNode ParseEffect()
     {
-        Expect("KEYWORD"); // effect
-        Expect("DELIMITER");
-
+        Expect("KEYWORD"); // 'effect'
+        Expect("DELIMITER"); // '{'
+    
         EffectNode effect = new EffectNode();
-
         Context effectContext = new Context(context);
-
-        while (CurrentToken.Value != "}")
+    
+        // Procesar los elementos del efecto hasta encontrar el cierre '}'
+        while (CurrentToken?.Value != "}")
         {
-            // Console.WriteLine("effect");
-            // Console.WriteLine(CurrentToken.Value);
-
-            if (CurrentToken.Value == "Name")
+            switch (CurrentToken?.Value)
             {
-
-                Expect("IDENTIFIER"); // Name
-                Expect("ASSIGNMENTOPERATOR");
-                effect.Name = CurrentToken.Value;
-                Expect("STRING");
-                Expect("SEPARATOR");
-
-                context.DeffineEffect(effect.Name, effect);
-            }
-            else if (CurrentToken.Value == "Params")
-            {
-                Expect("IDENTIFIER"); // Params
-                Expect("ASSIGNMENTOPERATOR");
-                Expect("DELIMITER");
-
-                while (CurrentToken.Value != "}")
-                {
-                    var paramName = CurrentToken.Value;
-                    Expect("IDENTIFIER"); // params name
-                    Expect("ASSIGNMENTOPERATOR");
-                    var paramType = CurrentToken.Value;
-                    Expect("IDENTIFIER"); // param type
-                    effect.Params[paramName] = paramType;
-                    
-                    if (effectContext.Variables.ContainsKey(paramName))
-                    {
-                        effectContext.SetVariable(paramName, paramType);
-                    }
-                    else if (paramType == "Number")
-                    {
-                        effectContext.DefineVariable(paramName, 0);
-                    }
-                    else if (paramType == "Bool")
-                    {
-                        effectContext.DefineVariable(paramName, false);
-                    }
-                    else
-                    {
-                        throw new Exception($"El tipo de dato no esta permitido para {paramName}.");
-                    }
-                    
-                    if (CurrentToken.Value == ",")
-                    {
-                        Expect("SEPARATOR");
-                    }
-                }
-
-                Expect("DELIMITER");
-                Expect("SEPARATOR");
-            }
-            else if (CurrentToken.Value == "Action")
-            {
-                    // Console.WriteLine(CurrentToken.Value + " " + _tokens.IndexOf(CurrentToken) + " " + CurrentToken.Type);
-
-                Expect("IDENTIFIER"); // Action
-                Expect("ASSIGNMENTOPERATOR");
-                // effect.Name = CurrentToken.Value;
-                while (CurrentToken.Value != "}")
-                {
-                    Expect("DELIMITER");
-                    Expect("IDENTIFIER");
+                case "Name":
+                    ParseEffectName(effect); // Analizar el nombre del efecto
+                    break;
+                case "Params":
+                    ParseEffectParams(effect, effectContext); // Analizar los parametros del efecto
+                    break;
+                case "Action":
+                    ParseEffectAction(effect, effectContext); // Analizar la accion de efecto 
+                    break;
+                case ",":
                     Expect("SEPARATOR");
-                    Expect("IDENTIFIER");
-                    Expect("DELIMITER");
-                    Expect("LAMBDAOPERATOR");
-
-                    // Aquí es donde llamamos a ParseActionBody para manejar el cuerpo de Action
-                    effect.Actions.Children = ParseActionBody(effectContext); 
-                }
-                Expect("DELIMITER");
-
-
+                    break;
+                default:
+                    ShowError($"Token inesperado en ParseEffect: {CurrentToken?.Value} en la posición {_tokens.IndexOf(CurrentToken)}");
+                    break;    
             }
-            
+        }
+    
+        Expect("DELIMITER");
+        return effect; // devolver el nodo de effecto
+    }
+    
+    // Analizar el nombre del efecto
+    private void ParseEffectName(EffectNode effect)
+    {
+        Expect("IDENTIFIER"); // 'Name'
+        Expect("ASSIGNMENTOPERATOR"); // ':'
+        effect.Name = CurrentToken.Value;
+        Expect("STRING"); // '"cadena"'
+        Expect("SEPARATOR"); // ','
 
+        // Definir el efecto en el contexto 
+        context.DeffineEffect(effect.Name, effect); 
+    }
+    
+    // Analizar los parametros del efecto
+    private void ParseEffectParams(EffectNode effect, Context effectContext)
+    {
+        Expect("IDENTIFIER"); // 'Params'
+        Expect("ASSIGNMENTOPERATOR"); // ':'
+        Expect("DELIMITER"); // '{'
+    
+        // Procesar los parametros hasta encontrar el cierre 
+        while (CurrentToken?.Value != "}")
+        {
+            var paramName = CurrentToken.Value;
+            Expect("IDENTIFIER"); // params name
+            Expect("ASSIGNMENTOPERATOR");
+            var paramType = CurrentToken.Value;
+            Expect("IDENTIFIER"); // param type
+    
+            effect.Params[paramName] = paramType;
+    
+            if (!effectContext.Variables.ContainsKey(paramName))
+            {
+                switch (paramType)
+                {
+                    case "Number":
+                        effectContext.DefineVariable(paramName, 0);
+                        break;
+                    case "Bool":
+                        effectContext.DefineVariable(paramName, false);
+                        break;
+                    default:
+                        throw new Exception($"El tipo de dato no está permitido para {paramName}.");
+                }
+            }
+            else
+            {
+                effectContext.SetVariable(paramName, paramType);
+            }
+    
             if (CurrentToken.Value == ",")
             {
                 Expect("SEPARATOR");
             }
         }
-
-
+    
         Expect("DELIMITER");
-        return effect;
+        Expect("SEPARATOR");
+    }
+    
+    private void ParseEffectAction(EffectNode effect, Context effectContext)
+    {
+        Expect("IDENTIFIER"); // Action
+        Expect("ASSIGNMENTOPERATOR");
+    
+        while (CurrentToken?.Value != "}")
+        {
+            Expect("DELIMITER");
+            Expect("IDENTIFIER");
+            Expect("SEPARATOR");
+            Expect("IDENTIFIER");
+            Expect("DELIMITER");
+            Expect("LAMBDAOPERATOR");
+    
+            effect.Actions.Children = ParseActionBody(effectContext);
+        }
+    
+        Expect("DELIMITER");
     }
 
     private List<ASTNode> ParseActionBody(Context currentContext)
@@ -179,31 +220,28 @@ public class Parser
 
         Expect("DELIMITER");
 
-        while (CurrentToken.Value != "}")
+        while (CurrentToken?.Value != "}")
         {
-            if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Value == ".")
+            switch (CurrentToken?.Type)
             {
-                statements.Add(ParseMemberAccess(currentContext));
-            }
-            else if (CurrentToken.Type == "IDENTIFIER" && PeekNextToken().Type == "ASSIGNMENTOPERATOR")
-            {
-                statements.Add(ParseAssignment(null, currentContext));
-            }
-            else if (CurrentToken.Value == "while")
-            {
-                statements.Add(ParseWhile(currentContext));
-            }
-            else if (CurrentToken.Value == "if")
-            {
-                statements.Add(ParseIf(currentContext));
-            }
-            else if (CurrentToken.Value == "for")
-            {
-                statements.Add(ParseFor(currentContext));
-            }
-            else
-            {
-                throw new Exception("Expresión no reconocida en el cuerpo de Action: " + CurrentToken.Value + " " + _tokens.IndexOf(CurrentToken));
+                case "IDENTIFIER" when PeekNextToken()?.Value == ".":
+                    statements.Add(ParseMemberAccess(currentContext));
+                    break;
+                case "IDENTIFIER" when PeekNextToken()?.Type == "ASSIGNMENTOPERATOR":
+                    statements.Add(ParseAssignment(null, currentContext));
+                    break;
+                case "KEYWORD" when CurrentToken?.Value == "while":
+                    statements.Add(ParseWhile(currentContext));
+                    break;
+                case "KEYWORD" when CurrentToken?.Value == "if":
+                    statements.Add(ParseIf(currentContext));
+                    break;
+                case "KEYWORD" when CurrentToken?.Value == "for":
+                    statements.Add(ParseFor(currentContext));
+                    break;
+                default:
+                    ShowError($"Expresión no reconocida en el cuerpo de Action: {CurrentToken?.Value}");
+                    break;
             }
         }
 
@@ -284,42 +322,34 @@ public class Parser
 
     private List<ExpressionNode> ParseArguments()
     {
-        List<ExpressionNode> arguments = new List<ExpressionNode>(); // Lista para almacenar los argumentos
+        List<ExpressionNode> arguments = new List<ExpressionNode>();
     
-        while (CurrentToken.Value != ")")
+        while (CurrentToken?.Value != ")")
         {
-            // Parsear cada argumento
-            if (CurrentToken.Type == "SEPARATOR")
+            switch (CurrentToken.Type)
             {
-                NextToken();
-            }
-            else if (CurrentToken.Type == "IDENTIFIER")
-            {
-                // Agregar el argumento 
-                arguments.Add(new VariableReferenceNode { Name = CurrentToken.Value});
-                NextToken(); // Avanzar al siguiente token después de agregar el argumento
-            }
-            else if (CurrentToken.Type == "NUMBER")
-            {
-                // Agregar el argumento 
-                arguments.Add(new NumberLiteralNode { Value = int.Parse(CurrentToken.Value)});
-                NextToken(); // Avanzar al siguiente token después de agregar el argumento
-            }
-            else if (CurrentToken.Type == "BOOLEAN")
-            {
-                bool currentTokenValue = false;
-                if (CurrentToken.Value == "true") currentTokenValue = true;
-                else if (CurrentToken.Value == "false") currentTokenValue = false;
-                // Agregar el argumento 
-                arguments.Add(new BooleanLiteralNode { Value = currentTokenValue});
-                NextToken(); // Avanzar al siguiente token después de agregar el argumento
-            }
-            else
-            {
-                throw new Exception("Tipo de argumento no reconocido.");
+                case "SEPARATOR":
+                    NextToken();
+                    break;
+                case "IDENTIFIER":
+                    arguments.Add(new VariableReferenceNode { Name = CurrentToken.Value });
+                    NextToken(); // Avanzar al siguiente token después de agregar el argumento
+                    break;
+                case "NUMBER":
+                    arguments.Add(new NumberLiteralNode { Value = int.Parse(CurrentToken.Value)});
+                    NextToken(); // Avanzar al siguiente token después de agregar el argumento
+                    break;
+                case "BOOLEAN":
+                    bool currentTokenValue = CurrentToken.Value == "true";
+                    arguments.Add(new BooleanLiteralNode { Value = currentTokenValue });
+                    NextToken(); // Avanzar al siguiente token después de agregar el argumento
+                    break;
+                default:
+                    ShowError($"Tipo de argumento no reconocido '{CurrentToken.Value}'.");
+                    break;
             }
         }
-
+    
         return arguments;
     }
 
@@ -345,7 +375,7 @@ public class Parser
         
         if (isCondition && ast.Evaluate(currentContext).GetType() != typeof(bool))
         {   
-           throw new Exception("La expresion de condicion debe evaluar a un booleano.");
+           ShowError("La expresion de condicion debe evaluar a un booleano.");
         }
         
         return ast;
@@ -375,7 +405,7 @@ public class Parser
                 }
                 else 
                 {
-                    throw new Exception($"La varible '{token.Value}' no esta definida");
+                    ShowError($"La varible '{token.Value}' no esta definida");
                 }
             }
             else if (Operators.ContainsKey(token.Value))
@@ -456,10 +486,6 @@ public class Parser
             {
                 whileNode.Body.Add(ParseAssignment(null, currentContext));
             }
-            else if (CurrentToken.Value == "while" && PeekNextToken().Value == "(")
-            {
-                throw new Exception($"Mijito implemnta el while :)");
-            }
             else if (CurrentToken.Value == "while")
             {
                 whileNode.Body.Add(ParseWhile(currentContext));
@@ -474,8 +500,7 @@ public class Parser
             }
             else
             {
-                // Aquí puedes agregar más tipos de nodos que quieras manejar en el cuerpo
-                throw new Exception("Expresión no reconocida en el cuerpo del while: " + CurrentToken.Value);
+                ShowError($"Expresión no reconocida en el cuerpo del while: '{CurrentToken.Value}'");
             }
         }
 
@@ -522,7 +547,7 @@ public class Parser
             }
             else
             {
-                throw new Exception("Expresión no reconocida en el cuerpo del if: " + CurrentToken.Value);
+                ShowError($"Expresión no reconocida en el cuerpo del if: '{CurrentToken.Value}'");
             }
         }
 
@@ -557,7 +582,7 @@ public class Parser
                 }
                 else
                 {
-                    throw new Exception("Expresión no reconocida en el cuerpo del else: " + CurrentToken.Value);
+                    ShowError($"Expresión no reconocida en el cuerpo del else: '{CurrentToken.Value}'");
                 }
             }
         }
@@ -612,7 +637,7 @@ public class Parser
             }
             else
             {
-                throw new Exception("Expresión no reconocida en el cuerpo del for: " + CurrentToken.Value);
+                ShowError($"Expresión no reconocida en el cuerpo del for: '{CurrentToken.Value}'");
             }
         }
 
@@ -623,13 +648,12 @@ public class Parser
     private CardNode ParseCard()
     {
         Expect("KEYWORD"); // card
-        Expect("DELIMITER");
+        Expect("DELIMITER"); 
 
         CardNode card = new CardNode();
 
         while (CurrentToken.Value != "}")
         {
-            // Console.WriteLine("card");
             if (CurrentToken.Value == "Type")
             {
                 Expect("IDENTIFIER"); // Type
@@ -674,7 +698,7 @@ public class Parser
                         Expect("SEPARATOR");
                     }
                 }
-                Expect("DELIMITER");
+                Expect("DELIMITER"); // ']'
             }
             else if (CurrentToken.Value == "OnActivation")
             {
@@ -687,29 +711,9 @@ public class Parser
                 {
                     card.OnActivation.Add(ParseActivation(isFirst));
                     isFirst = false;
-                    if (CurrentToken.Value == "}")
+                    while (CurrentToken.Value == "}" || CurrentToken.Value == ",")
                     {
-                        Expect("DELIMITER");
-                    }
-                    if (CurrentToken.Value == ",")
-                    {
-                        Expect("SEPARATOR");
-                    }
-                    if(CurrentToken.Value == "}")
-                    {
-                        Expect("DELIMITER");
-                    }
-                    if (CurrentToken.Value == ",")
-                    {
-                        Expect("SEPARATOR");
-                    }
-                    if (CurrentToken.Value == "}")
-                    {
-                        Expect("DELIMITER");
-                    }
-                    if (CurrentToken.Value == ",")
-                    {
-                        Expect("SEPARATOR");
+                        NextToken();
                     }
                 }
                 
@@ -739,7 +743,6 @@ public class Parser
 
         while (CurrentToken.Value != "}" && CurrentToken.Value != "PostAction")
         {
-            // Console.WriteLine("ParseActivation");
 
             if (CurrentToken.Value == "Effect")
             {
@@ -774,14 +777,13 @@ public class Parser
 
         while (CurrentToken.Value != "}")
         {
-
             if (CurrentToken.Value == "Name")
             {
                 Expect("IDENTIFIER"); // Name
                 Expect("ASSIGNMENTOPERATOR");
                 if (!context.Effects.ContainsKey(CurrentToken.Value))
                 {
-                    throw new Exception($"El effecto {CurrentToken.Value} no ha sido construido anteriormente.");
+                    ShowError($"El effecto '{CurrentToken.Value}' no ha sido construido anteriormente.");
                 }
                 CardEffect.Name = CurrentToken.Value;
                 Expect("STRING");
@@ -857,6 +859,7 @@ public class Parser
 
                 predicateNode.LeftMember = CurrentToken.Value;
                 Expect("IDENTIFIER");
+
                 predicateNode.Operator = CurrentToken.Value;
                 Expect("RELATIONALOPERATOR");
                 if(CurrentToken.Type == "NUMBER")
@@ -871,7 +874,7 @@ public class Parser
                 }
                 else
                 {
-                    throw new Exception($"Tipo de valor no permito para 'Predicate' se esperaba 'number' o 'string' pero se obtuvo {CurrentToken.Type}");
+                    ShowError($"Tipo de valor no permito para 'Predicate' se esperaba 'number' o 'string' pero se obtuvo {CurrentToken.Type}");
                 }               
                 
                 selector.Predicate = predicateNode;

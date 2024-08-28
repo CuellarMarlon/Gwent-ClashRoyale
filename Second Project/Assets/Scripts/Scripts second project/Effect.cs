@@ -1,6 +1,9 @@
+using System;
+using System.Collections.Generic;
+
 namespace GwentPlus
 {
-    public class Effects
+    public class Effects 
     {
         public string Name { get; set; } 
         public List<object> Params { get; set; } 
@@ -14,7 +17,7 @@ namespace GwentPlus
 
             if (Source == "\"board\"")
             {
-                foreach (var unit in GameContext.Instance.Board)
+                foreach (Card unit in GameContext.Instance.Board)
                 {
                     switch (Predicate.Operator)
                     {
