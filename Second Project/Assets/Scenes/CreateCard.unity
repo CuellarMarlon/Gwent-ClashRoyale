@@ -614,7 +614,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 8.500015}
+  m_AnchoredPosition: {x: 0, y: 8.49913}
   m_SizeDelta: {x: 845, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &158571043
@@ -950,24 +950,67 @@ MonoBehaviour:
     context) => {\n                topCard = context.Deck.Pop();\n               
     context.Hand.Add(topCard);\n                context.Hand.Shuffle();\n           
     }\n        }\n \n        effect {\n            Name: \"ReturnToDeck\",\n           
-    Action: (targets, context) => {\n                for (target in targets) {\n                   
-    deck = context.Deck;\n                    deck.Push(target);\n                   
-    deck.Shuffle();\n                    context.Board.Remove(target);\n               
-    }\n            }\n        }\n \n        card {\n            Type: \"Oro\",\n           
-    Name: \"Beluga\",\n            Faction: \"Faction1\",\n            Power: 10,\n           
-    Range: [\"Melee\", \"Ranged\"],\n            OnActivation: [\n               
-    {\n                    Effect: {\n                        Name: \"Damage\",\n                       
-    Amount: 5,\n                    },\n                    Selector: {\n                       
+    Action: (targets, context) => {\n                for (target in targets) {\n\t   
+    owner = target.Owner;\n                    deck = context.DeckOfPlayer(owner);\n                   
+    deck.Push(target);\n                    deck.Shuffle();\n                   
+    context.Board.Remove(target);\n                }\n            }\n        }\n\neffect
+    {\n            Name: \"Aumento\",\n            Params: {\n                Amount:
+    Number\n            },\n            Action: (targets, context) => {\n               
+    for (target in targets) {\n                    i = 0;\n                    while
+    (i < Amount){\n                        target.Power += 1;\n                       
+    i += 1;\n                        }\n                }\n            }\n       
+    }\n \n         card {\n            Type: \"Oro\",\n            Name: \"El lindo\",\n           
+    Faction: \"Dark\",\n            Power: 10,\n            Range: [\"Melee\", \"Ranged\"],\n           
+    OnActivation: [\n                {\n                    Effect: {\n                       
+    Name: \"Damage\",\n                        Amount: 2,\n                    },\n                   
+    Selector: {\n                        Source: \"board\",\n                       
+    Single: false,\n                        Predicate: (unit) => unit.Faction ==
+    \"Celestial\"\n                    },\n                },\n            ]\n       
+    }\t\n card {\n            Type: \"Oro\",\n            Name: \"El feo\",\n           
+    Faction: \"Celestial\",\n            Power: 10,\n            Range: [\"Melee\",
+    \"Ranged\"],\n            OnActivation: [\n                {\n                   
+    Effect: {\n                        Name: \"Damage\",\n                       
+    Amount: 2,\n                    },\n                    Selector: {\n                       
     Source: \"board\",\n                        Single: false,\n                       
-    Predicate: (unit) => unit.Faction == \"Faction1\"\n                    },\n                   
-    PostAction: {\n                        Effect: {\n                           
-    Name: \"ReturnToDeck\",\n                        },\n                       
-    Selector: {\n                            Source: \"parent\",\n                           
-    Single: false,\n                            Predicate: (unit) => unit.Power <
-    1\n                        },\n                        PostAction: {\n                           
-    Effect : {\n                                Name: \"Draw\",\n                           
-    },\n                        },\n                                         \n                   
-    \n                    },\n                },\n            ]\n        }\u200B"
+    Predicate: (unit) => unit.Faction == \"Dark\"\n                    },\n               
+    },\n            ]\n        }\t\n card {\n            Type: \"Oro\",\n           
+    Name: \"El lindo+\",\n            Faction: \"Dark\",\n            Power: 10,\n           
+    Range: [\"Melee\", \"Ranged\"],\n            OnActivation: [\n               
+    {\n                    Effect: {\n                        Name: \"Draw\",\n                   
+    },\n                },\n            ]\n        }\t\n card {\n            Type:
+    \"Oro\",\n            Name: \"El feo+\",\n            Faction: \"Celestial\",\n           
+    Power: 10,\n            Range: [\"Melee\", \"Ranged\"],\n            OnActivation:
+    [\n                {\n                    Effect: {\n                       
+    Name: \"Draw\",\n                    },\n                },\n            ]\n       
+    }\t \ncard {\n            Type: \"Oro\",\n            Name: \"El lindo++\",\n           
+    Faction: \"Dark\",\n            Power: 10,\n            Range: [\"Melee\", \"Ranged\"],\n           
+    OnActivation: [\n                {\n                    Effect: {\n                       
+    Name: \"ReturnToDeck\",\n                    },\n                    Selector:
+    {\n                        Source: \"board\",\n                        Single:
+    false,\n                        Predicate: (unit) => unit.Faction == \"Celestial\"\n                   
+    }\n                },\n            ]\n        }\t\n card {\n            Type:
+    \"Oro\",\n            Name: \"El feo++\",\n            Faction: \"Celestial\",\n           
+    Power: 10,\n            Range: [\"Melee\", \"Ranged\"],\n            OnActivation:
+    [\n                {\n                    Effect: {\n                       
+    Name: \"ReturnToDeck\",\n                    },\n                    Selector:
+    {\n                        Source: \"board\",\n                        Single:
+    false,\n                        Predicate: (unit) => unit.Faction == \"Dark\"\n                   
+    }, \n                },\n            ]\n        }\t\ncard {\n            Type:
+    \"Aumento\",\n            Name: \"Aumento\",\n            Faction: \"Dark\",\n           
+    OnActivation: [\n                {\n                    Effect: {\n                       
+    Name: \"Aumento\",\n                        Amount: 2,\n                    },\n                   
+    Selector: {\n                        Source: \"board\",\n                       
+    Single: false,\n                        Predicate: (unit) => unit.Faction ==
+    \"Dark\"\n                    },\n\t\tPostAction: {\n\t\t\tEffect: {\n\t\t\t\tName:
+    \u201CDraw\u201D,\n\t\t\t},\n\t\t},\n                },\n            ]\n       
+    }\t\ncard {\n            Type: \"Aumento\",\n            Name: \"AumentoCel\",\n           
+    Faction: \"Celestial\",\n            OnActivation: [\n                {\n                   
+    Effect: {\n                        Name: \"Aumento\",\n                       
+    Amount: 2,\n                    },\n                    Selector: {\n                       
+    Source: \"board\",\n                        Single: false,\n                       
+    Predicate: (unit) => unit.Faction == \"Celestial\"\n                    },\n\t\tPostAction:
+    {\n\t\t\tEffect: {\n\t\t\t\tName: \u201CDraw\u201D,\n\t\t\t},\n\t\t},\n               
+    },\n            ]\n        }\t\u200B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3377,8 +3420,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1043915073}
-  - component: {fileID: 1043915078}
-  - component: {fileID: 1043915074}
   m_Layer: 5
   m_Name: CardsCreatedObject
   m_TagString: Untagged
@@ -3411,39 +3452,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -65}
   m_SizeDelta: {x: 100, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1043915074
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1043915072}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e309afe72cd0650c497db619b8e48408, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1043915078
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1043915072}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6c17ffabccd489f0b889238130cca813, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  card: {fileID: 11400000, guid: 7725c4e4a58a2c2268c5194383f84cf0, type: 2}
-  cardZoom: {fileID: 0}
-  cardInfo: {fileID: 0}
-  cardName: {fileID: 2056160114}
-  shadowCardName: {fileID: 453862506}
-  power: {fileID: 1098121941}
-  shadowPower: {fileID: 1075282564}
-  powerContainer: {fileID: 158278516}
-  cardPhoto: {fileID: 1764987118}
 --- !u!1 &1075282562
 GameObject:
   m_ObjectHideFlags: 0
@@ -4825,7 +4833,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1754933886}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0.99998814
+  m_Size: 0.9999869
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -5525,24 +5533,67 @@ MonoBehaviour:
     context) => {\n                topCard = context.Deck.Pop();\n               
     context.Hand.Add(topCard);\n                context.Hand.Shuffle();\n           
     }\n        }\n \n        effect {\n            Name: \"ReturnToDeck\",\n           
-    Action: (targets, context) => {\n                for (target in targets) {\n                   
-    deck = context.Deck;\n                    deck.Push(target);\n                   
-    deck.Shuffle();\n                    context.Board.Remove(target);\n               
-    }\n            }\n        }\n \n        card {\n            Type: \"Oro\",\n           
-    Name: \"Beluga\",\n            Faction: \"Faction1\",\n            Power: 10,\n           
-    Range: [\"Melee\", \"Ranged\"],\n            OnActivation: [\n               
-    {\n                    Effect: {\n                        Name: \"Damage\",\n                       
-    Amount: 5,\n                    },\n                    Selector: {\n                       
+    Action: (targets, context) => {\n                for (target in targets) {\n\t   
+    owner = target.Owner;\n                    deck = context.DeckOfPlayer(owner);\n                   
+    deck.Push(target);\n                    deck.Shuffle();\n                   
+    context.Board.Remove(target);\n                }\n            }\n        }\n\neffect
+    {\n            Name: \"Aumento\",\n            Params: {\n                Amount:
+    Number\n            },\n            Action: (targets, context) => {\n               
+    for (target in targets) {\n                    i = 0;\n                    while
+    (i < Amount){\n                        target.Power += 1;\n                       
+    i += 1;\n                        }\n                }\n            }\n       
+    }\n \n         card {\n            Type: \"Oro\",\n            Name: \"El lindo\",\n           
+    Faction: \"Dark\",\n            Power: 10,\n            Range: [\"Melee\", \"Ranged\"],\n           
+    OnActivation: [\n                {\n                    Effect: {\n                       
+    Name: \"Damage\",\n                        Amount: 2,\n                    },\n                   
+    Selector: {\n                        Source: \"board\",\n                       
+    Single: false,\n                        Predicate: (unit) => unit.Faction ==
+    \"Celestial\"\n                    },\n                },\n            ]\n       
+    }\t\n card {\n            Type: \"Oro\",\n            Name: \"El feo\",\n           
+    Faction: \"Celestial\",\n            Power: 10,\n            Range: [\"Melee\",
+    \"Ranged\"],\n            OnActivation: [\n                {\n                   
+    Effect: {\n                        Name: \"Damage\",\n                       
+    Amount: 2,\n                    },\n                    Selector: {\n                       
     Source: \"board\",\n                        Single: false,\n                       
-    Predicate: (unit) => unit.Faction == \"Faction1\"\n                    },\n                   
-    PostAction: {\n                        Effect: {\n                           
-    Name: \"ReturnToDeck\",\n                        },\n                       
-    Selector: {\n                            Source: \"parent\",\n                           
-    Single: false,\n                            Predicate: (unit) => unit.Power <
-    1\n                        },\n                        PostAction: {\n                           
-    Effect : {\n                                Name: \"Draw\",\n                           
-    },\n                        },\n                                         \n                   
-    \n                    },\n                },\n            ]\n        }"
+    Predicate: (unit) => unit.Faction == \"Dark\"\n                    },\n               
+    },\n            ]\n        }\t\n card {\n            Type: \"Oro\",\n           
+    Name: \"El lindo+\",\n            Faction: \"Dark\",\n            Power: 10,\n           
+    Range: [\"Melee\", \"Ranged\"],\n            OnActivation: [\n               
+    {\n                    Effect: {\n                        Name: \"Draw\",\n                   
+    },\n                },\n            ]\n        }\t\n card {\n            Type:
+    \"Oro\",\n            Name: \"El feo+\",\n            Faction: \"Celestial\",\n           
+    Power: 10,\n            Range: [\"Melee\", \"Ranged\"],\n            OnActivation:
+    [\n                {\n                    Effect: {\n                       
+    Name: \"Draw\",\n                    },\n                },\n            ]\n       
+    }\t \ncard {\n            Type: \"Oro\",\n            Name: \"El lindo++\",\n           
+    Faction: \"Dark\",\n            Power: 10,\n            Range: [\"Melee\", \"Ranged\"],\n           
+    OnActivation: [\n                {\n                    Effect: {\n                       
+    Name: \"ReturnToDeck\",\n                    },\n                    Selector:
+    {\n                        Source: \"board\",\n                        Single:
+    false,\n                        Predicate: (unit) => unit.Faction == \"Celestial\"\n                   
+    }\n                },\n            ]\n        }\t\n card {\n            Type:
+    \"Oro\",\n            Name: \"El feo++\",\n            Faction: \"Celestial\",\n           
+    Power: 10,\n            Range: [\"Melee\", \"Ranged\"],\n            OnActivation:
+    [\n                {\n                    Effect: {\n                       
+    Name: \"ReturnToDeck\",\n                    },\n                    Selector:
+    {\n                        Source: \"board\",\n                        Single:
+    false,\n                        Predicate: (unit) => unit.Faction == \"Dark\"\n                   
+    }, \n                },\n            ]\n        }\t\ncard {\n            Type:
+    \"Aumento\",\n            Name: \"Aumento\",\n            Faction: \"Dark\",\n           
+    OnActivation: [\n                {\n                    Effect: {\n                       
+    Name: \"Aumento\",\n                        Amount: 2,\n                    },\n                   
+    Selector: {\n                        Source: \"board\",\n                       
+    Single: false,\n                        Predicate: (unit) => unit.Faction ==
+    \"Dark\"\n                    },\n\t\tPostAction: {\n\t\t\tEffect: {\n\t\t\t\tName:
+    \u201CDraw\u201D,\n\t\t\t},\n\t\t},\n                },\n            ]\n       
+    }\t\ncard {\n            Type: \"Aumento\",\n            Name: \"AumentoCel\",\n           
+    Faction: \"Celestial\",\n            OnActivation: [\n                {\n                   
+    Effect: {\n                        Name: \"Aumento\",\n                       
+    Amount: 2,\n                    },\n                    Selector: {\n                       
+    Source: \"board\",\n                        Single: false,\n                       
+    Predicate: (unit) => unit.Faction == \"Celestial\"\n                    },\n\t\tPostAction:
+    {\n\t\t\tEffect: {\n\t\t\t\tName: \u201CDraw\u201D,\n\t\t\t},\n\t\t},\n               
+    },\n            ]\n        }\t"
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0

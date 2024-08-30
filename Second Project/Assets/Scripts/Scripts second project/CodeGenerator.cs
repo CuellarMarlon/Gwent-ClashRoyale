@@ -81,6 +81,10 @@ namespace GwentPlus
 
             writer.WriteLine($"    public void {effectNode.Name.Substring(1, effectNode.Name.Length - 2)}Effect(CardList targets, GameContext context {parametersString})");
             writer.WriteLine("    {");
+            writer.WriteLine("         UnityEngine.Debug.Log(\"EffectoEjecutado\");");
+            writer.WriteLine("         UnityEngine.Debug.Log(\"Current:\" + GameManager.Instance.currentPlayer);");
+
+
 
             foreach (var action in effectNode.Actions.Children)
             {
@@ -162,7 +166,6 @@ namespace GwentPlus
                 }
             }
             
-            // Agrega más tipos de nodos según sea necesario
         }
 
         private string GenerateValueExpressionCode(ASTNode valueExpression)
@@ -210,6 +213,7 @@ namespace GwentPlus
             Card cardData = ScriptableObject.CreateInstance<Card>();
 
             // Asigna las propiedades
+            cardData.IsCreated = true;
             cardData.Name = cardNode.Name.Substring(1, cardNode.Name.Length - 2);
             cardData.Type = (CardType)Enum.Parse(typeof(CardType), cardNode.Type.Substring(1, cardNode.Type.Length - 2));
             cardData.Faction = (Faction)Enum.Parse(typeof(Faction), cardNode.Faction.Substring(1, cardNode.Faction.Length - 2));

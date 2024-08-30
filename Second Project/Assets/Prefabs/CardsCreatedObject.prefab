@@ -92,8 +92,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 10
-  m_fontSizeBase: 10
+  m_fontSize: 8
+  m_fontSizeBase: 8
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -341,14 +341,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c17ffabccd489f0b889238130cca813, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  card: {fileID: 11400000, guid: 7725c4e4a58a2c2268c5194383f84cf0, type: 2}
+  card: {fileID: 11400000, guid: 52a79940d11c1b0ae91f5634b0c7d86e, type: 2}
   cardZoom: {fileID: 0}
+  cardInfo: {fileID: 0}
   cardName: {fileID: 2143478614082659078}
   shadowCardName: {fileID: 6305369154831412326}
   power: {fileID: 3013288324330245234}
   shadowPower: {fileID: 875482793446165070}
   powerContainer: {fileID: 4709723363918940002}
+  cardBack: {fileID: 0}
   cardPhoto: {fileID: 7325667617759354883}
+  deckP1: {fileID: 0}
+  deckP2: {fileID: 0}
 --- !u!114 &8585607620218535099
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -881,8 +885,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 10
-  m_fontSizeBase: 10
+  m_fontSize: 8
+  m_fontSizeBase: 8
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

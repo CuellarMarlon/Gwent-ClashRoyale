@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e29c953e6465f6d438454c0d270d573b, type: 3}
+  m_Name: Winged Nightmare
+  m_EditorClassIdentifier: 
+  Owner: 0
+  IsCreated: 0
+  Photo: {fileID: 21300000, guid: 20ea6e72fd17a7077a592c098a0ae5aa, type: 3}
+  Type: 1
+  Effect: 7
+  Name: Winged Nightmare
+  Faction: 0
+  Power: 5
+  Range: 0100000002000000

@@ -6,17 +6,17 @@ namespace GwentPlus
     public class GameContext
     {
         public  static GameContext Instance = new GameContext(); //instancia estatica de la clase para poder usarla un unity
-        public int TriggerPlayer { get; set; } 
+        public int TriggerPlayer { get; set; } = 1;
         public Dictionary<int, CardList> Boards { get; set; } = new Dictionary<int, CardList>(); // Representa el tablero completo, con IDs de jugadores como clave
         public Dictionary<int, CardList> Hands { get; set; } = new Dictionary<int, CardList>();
         public Dictionary<int, CardList> Fields { get; set; } = new Dictionary<int, CardList>();
         public Dictionary<int, CardList> Graveyards { get; set; } = new Dictionary<int, CardList>();
         public Dictionary<int, CardList> Decks { get; set; } = new Dictionary<int, CardList>();
 
-        public CardList hand => Hands[TriggerPlayer];
-        public CardList field => Fields[TriggerPlayer];
-        public CardList graveyard => Graveyards[TriggerPlayer];
-        public CardList deck => Decks[TriggerPlayer];
+        public CardList Hand => Hands[TriggerPlayer];
+        public CardList Board => GetBoard();
+        public CardList Graveyard => Graveyards[TriggerPlayer];
+        public CardList Deck => Decks[TriggerPlayer];
 
 
         //Filas y casillas de clima del tablero
@@ -36,33 +36,96 @@ namespace GwentPlus
         public CardList weatherRangeP2 =  new CardList();
         public CardList weatherSiegeP2 =  new CardList();
 
+        public GameContext()
+        {
+            Hands[1] = new CardList();
+            Hands[2] = new CardList();
+            Fields[1] = new CardList();
+            Fields[2] = new CardList();
+            Graveyards[1] = new CardList();
+            Graveyards[2] = new CardList();
+            Decks[1] = new CardList();
+            Decks[2] = new CardList();
+        }
+
+        public CardList GetBoard()
+        {
+            CardList board = new CardList();
+
+            board.AddRange(Fields[1]);
+            board.AddRange(Fields[2]);
+
+            return board;
+        }
         
-        public CardList Hand(int playerId)
+        public CardList HandOfPlayer(int playerId)
         {
             return Hands[playerId];
         }
 
-        public CardList Field(int playerId)
+        public CardList FieldOfPlayer(int playerId)
         {
             return Fields[playerId];
         }
 
-        public CardList Graveyard(int playerId)
+        public CardList GraveyardOfPlayer(int playerId)
         {
             return Graveyards[playerId];
         }
 
-        public CardList Deck(int playerId)
+        public CardList DeckOfPlayer(int playerId)
         {
             return Decks[playerId];
         }
 
-        private void ActualiceVisual()
+        public void ActualiceVisual(int owner, GameObject hand, GameObject deck, GameObject cementery, GameObject rowMelee, GameObject rowRange, GameObject rowSiege, GameObject weatherMelee, GameObject weatherRange, GameObject weatherSiege, GameObject cardPrefab)
         {
-            
+            // Limpiar los hijos de cada GameObject
+            void ClearChildren(GameObject parent)
+            {
+                foreach (Transform child in parent.transform)
+                {
+                    GameObject.Destroy(child.gameObject);
+                }
+            }
+
+            ClearChildren(hand);
+            ClearChildren(deck);
+            ClearChildren(cementery);
+            ClearChildren(rowMelee);
+            ClearChildren(rowRange);
+            ClearChildren(rowSiege);
+            ClearChildren(weatherMelee);
+            ClearChildren(weatherRange);
+            ClearChildren(weatherSiege);
+
+            // Función auxiliar para añadir cartas a un GameObject
+            void AddCardsToGameObject(CardList cardList, GameObject parent, GameObject prefab)
+            {
+                foreach (Card card in cardList)
+                {
+                    GameObject cardObject = GameObject.Instantiate(prefab, parent.transform);
+                    CardDisplay cardDisplay = cardObject.GetComponent<CardDisplay>();
+                    cardDisplay.card = card;
+                    cardDisplay.InitializeCard();
+                
+                }
+            }
+
+            // Añadir las cartas de las listas a los GameObjects correspondientes
+            AddCardsToGameObject(Hands[owner], hand, cardPrefab);
+            AddCardsToGameObject(Decks[owner], deck, cardPrefab);
+            AddCardsToGameObject(Graveyards[owner], cementery, cardPrefab);
+            AddCardsToGameObject(owner == 1 ? rowMeleeP1 : rowMeleeP2, rowMelee, cardPrefab);
+            AddCardsToGameObject(owner == 1 ? rowRangeP1 : rowRangeP2, rowRange, cardPrefab);
+            AddCardsToGameObject(owner == 1 ? rowSiegeP1 : rowSiegeP2, rowSiege, cardPrefab);
+            AddCardsToGameObject(owner == 1 ? weatherMeleeP1 : weatherMeleeP2, weatherMelee, cardPrefab);
+            AddCardsToGameObject(owner == 1 ? weatherRangeP1 : weatherRangeP2, weatherRange, cardPrefab);
+            AddCardsToGameObject(owner == 1 ? weatherSiegeP1 : weatherSiegeP2, weatherSiege, cardPrefab);
         }
 
-        private void ActualiceContext(int owner, GameObject hand, GameObject deck, GameObject cementery, GameObject rowMelee, GameObject rowRange, GameObject rowSiege, GameObject weatherMelee, GameObject weatherRange, GameObject weatherSiege)
+
+        public void ActualiceContext(int owner, GameObject hand, GameObject deck, GameObject cementery, GameObject rowMelee, GameObject rowRange, GameObject rowSiege, GameObject weatherMelee, GameObject weatherRange, GameObject weatherSiege)
         {
             // Limpiar las listas actuales
             Hands[owner].Clear();
@@ -93,7 +156,8 @@ namespace GwentPlus
             {
                 foreach (Transform child in parent.transform)
                 {
-                    Card card = child.GetComponent<Card>();
+                    CardDisplay cardDisplay = child.GetComponent<CardDisplay>();
+                    Card card = cardDisplay.card;
                     if (card != null)
                     {
                         cardList.Add(card);
@@ -131,6 +195,7 @@ namespace GwentPlus
                 Fields[owner].AddRange(weatherRangeP2);
                 Fields[owner].AddRange(weatherSiegeP2);
             }
+            
         }
 
     }

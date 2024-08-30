@@ -7,6 +7,7 @@ using TMPro;
 
 public class CreateCard : MonoBehaviour
 {
+    public static CreateCard Instance { get; private set; }
     public GameObject InputField, CardsCreated, CardPrefab;
     public TextMeshProUGUI Input;
     public List<Card> cardsCreated;
@@ -26,6 +27,7 @@ public class CreateCard : MonoBehaviour
             CleanUpInstantiatedCards();
         }
         ShowCards();
+        SaveCards();
     }
 
     public void OnBackButtonClicked()
@@ -50,7 +52,7 @@ public class CreateCard : MonoBehaviour
     private void CodeGenerator(List<ASTNode> ast)
     {
         CodeGenerator codeGenerator = new CodeGenerator(ast);
-        codeGenerator.GenerateCode("EffectCreated.cs");
+        codeGenerator.GenerateCode("Assets/Scripts/EffectCreated.cs");
 
         //Agregar cada carta creada en codeGenerator a cardsCreated
         foreach (var card in codeGenerator._cards)
@@ -80,5 +82,18 @@ public class CreateCard : MonoBehaviour
             Destroy(card);
         }
         instantiatedCards.Clear(); // Limpia la lista de cartas instanciadas
+    }
+
+    public void SaveCards()
+    {
+        if (DataGame.Instance.createdCards != null)
+        {
+            DataGame.Instance.createdCards.Clear();
+        }
+            
+        foreach (Card card in cardsCreated)
+        {
+            DataGame.Instance.createdCards.Add(card);  
+        }
     }
 }

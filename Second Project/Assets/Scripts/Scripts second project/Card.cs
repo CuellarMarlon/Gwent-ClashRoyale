@@ -5,16 +5,18 @@ using UnityEngine;
 namespace GwentPlus
 {
     public enum CardType { Oro, Plata, Clima, Aumento, Despeje, Senuelo, Lider }
-    public enum Faction { Faction1, Faction2, Faction3, Faction4 } 
+    public enum Effect { Oro, Plata, Clima, Aumento, Despeje, Senuelo, Lider, NoEffect }
+    public enum Faction { Dark, Celestial, Neutral } 
     public enum Range { Melee, Ranged, Siege }
-    
 
     [CreateAssetMenu(fileName = "NewCard", menuName = "Card/Card")]
     public class Card : ScriptableObject
     {
         public  int Owner;
+        public bool IsCreated;
         public Sprite Photo;
         public CardType Type;
+        public Effect Effect;
         public string Name;
         public Faction Faction;
         public int Power;
@@ -24,10 +26,45 @@ namespace GwentPlus
 
         public void ActivateEffects()
         {
-            foreach (var effect in OnActivation)
+            if (IsCreated)
             {
-                ActivateSpecificEffect(effect, effect.Params);
+                foreach (var effect in OnActivation)
+                {
+                    Debug.Log("Owner: " + Owner);
+                    ActivateSpecificEffect(effect, effect.Params);
+                }
             }
+            // else 
+            // {
+            //     if (CardType == CardType.Oro)
+            //     {
+            //         EffectOro();
+            //     }
+            //     else if (CardType == CardType.Plata)
+            //     {
+            //         EffectPlata();
+            //     }
+            //     else if (CardType == CardType.Clima)
+            //     {
+            //         EffectClima();
+            //     }
+            //     else if (CardType == CardType.Aumento)
+            //     {
+            //         EffectAumento();
+            //     }
+            //     else if (CardType == CardType.Senuelo)
+            //     {
+            //         EffectSenuelo();
+            //     }
+            //     else if (CardType == CardType.Despeje)
+            //     {
+            //         EffectDespeje();
+            //     }
+            //     else if (CardEffect = NoEffect)
+            //     {
+            //         conitnue;
+            //     }
+            // }
         }
         private void ActivateSpecificEffect(Effects effect, List<object> prms)
         {
@@ -36,27 +73,27 @@ namespace GwentPlus
             {
                 if(prms.Count == 0 || prms == null)
                 {
-                    var targetList = new CardList { this }; 
+                    var targetList = effect.Targets ; 
                     effectMethod.Invoke(EffectCreated, new object[] { targetList, GameContext.Instance }); 
                 }
                 else if(prms.Count == 1)
                 {
-                    var targetList = new CardList { this }; 
+                    var targetList = effect.Targets; 
                     effectMethod.Invoke(EffectCreated, new object[] { targetList, GameContext.Instance, int.Parse(prms[0].ToString()!) }); 
                 }
                 else if(prms.Count == 2)
                 {
-                    var targetList = new CardList { this }; 
+                    var targetList = effect.Targets; 
                     effectMethod.Invoke(EffectCreated, new object[] { targetList, GameContext.Instance, int.Parse(prms[0].ToString()!), int.Parse(prms[1].ToString()!) }); 
                 }
                 else if(prms.Count == 3)
                 {
-                    var targetList = new CardList { this }; 
+                    var targetList = effect.Targets; 
                     effectMethod.Invoke(EffectCreated, new object[] { targetList, GameContext.Instance, int.Parse(prms[0].ToString()!), int.Parse(prms[1].ToString()!), int.Parse(prms[2].ToString()!) }); 
                 }
                 else
                 {
-                    var targetList = new CardList { this }; 
+                    var targetList = effect.Targets; 
                     effectMethod.Invoke(EffectCreated, new object[] { targetList, GameContext.Instance, int.Parse(prms[0].ToString()!), int.Parse(prms[1].ToString()!), int.Parse(prms[2].ToString()!), int.Parse(prms[3].ToString()!) }); 
                 }
             }
@@ -66,7 +103,6 @@ namespace GwentPlus
             }
         }
         
-
-        
     }
+        
 }

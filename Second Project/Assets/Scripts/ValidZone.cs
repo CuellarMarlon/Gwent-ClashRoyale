@@ -1,6 +1,7 @@
 
 using UnityEngine.EventSystems;
 using UnityEngine;
+using GwentPlus;
 
 public class ValidZone : MonoBehaviour
 {

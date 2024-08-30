@@ -79,9 +79,14 @@ namespace GwentPlus
             cards.Clear();
         } 
 
-        public void AddRange(List<Card> cards)
+        public void AddRange(CardList cards)
         {
-            cards.AddRange();
+            this.cards.AddRange(cards.cards);
+        }
+
+        public int Count()
+        {
+            return cards.Count;
         }
 
         

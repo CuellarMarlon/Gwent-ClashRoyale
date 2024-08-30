@@ -109,6 +109,9 @@ public class DragDrop : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDrag
             draggedObject.transform.SetParent(TriggerLogger.otherCard.transform.parent);
             TriggerLogger.isColling = false;
             TriggerLogger.otherCard = null;
+            GameManager.Instance.ActualizeContext();
+            cardDisplay.card.ActivateEffects();
+            GameManager.Instance.ActualiceVisual();
             GameManager.Instance.StartTurn();
             EndRound.counter = 0;
 
@@ -125,7 +128,11 @@ public class DragDrop : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDrag
             if (validZone != null)
             {
                 validZone.PlaceObject(rectTransform);
+                GameManager.Instance.ActualizeContext();
+                cardDisplay.card.ActivateEffects();
+                GameManager.Instance.ActualiceVisual();
                 GameManager.Instance.StartTurn();
+
                 EndRound.counter = 0;
             }
         }

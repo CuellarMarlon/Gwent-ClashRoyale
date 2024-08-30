@@ -1100,6 +1100,7 @@ GameObject:
   - component: {fileID: 1827329042}
   - component: {fileID: 1827329041}
   - component: {fileID: 1827329040}
+  - component: {fileID: 1827329046}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -1231,6 +1232,68 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1827329046
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1827329039}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 402492da2ba02d355ae116125f997692, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  darkCards:
+  - {fileID: 11400000, guid: a6ec27d0216591645bc4d49fe41db9d9, type: 2}
+  - {fileID: 11400000, guid: dc64f4cbddfcf005885a44e538a3e0ef, type: 2}
+  - {fileID: 11400000, guid: 393c414f049472f2290c77d1e5beec0c, type: 2}
+  - {fileID: 11400000, guid: 9bd7c3a98fe64ecc8a7b4ea35e445c3c, type: 2}
+  - {fileID: 11400000, guid: f63b769241dbd357380fc5e629d11a7b, type: 2}
+  - {fileID: 11400000, guid: 37639df52606e287ca1fbfad48fdd91c, type: 2}
+  - {fileID: 11400000, guid: da2d1440758fd83c9b2b5d0d3cc1418f, type: 2}
+  - {fileID: 11400000, guid: 39ca8866cb0298c5cb82d56a919b2c08, type: 2}
+  - {fileID: 11400000, guid: 7a4ace8ffcfd35c1bbc7a3f8ed766eed, type: 2}
+  - {fileID: 11400000, guid: 9f38251d5fcc7528d8c8335904e0b3e9, type: 2}
+  - {fileID: 11400000, guid: 8a646079e015f243c8a29d61356b5828, type: 2}
+  - {fileID: 11400000, guid: d124ee3d3560944dc8e4c6072a0f806f, type: 2}
+  - {fileID: 11400000, guid: 8fb2073e6eb29f9bab1558fbed5c0ab5, type: 2}
+  - {fileID: 11400000, guid: 74b5fdffb0a9eaf36b97a4f327c37b72, type: 2}
+  - {fileID: 11400000, guid: e202c4271c775f7a3b69fed0902eb835, type: 2}
+  celestialCards:
+  - {fileID: 11400000, guid: 16ac82a11a8762ab5a836f250c209229, type: 2}
+  - {fileID: 11400000, guid: ae85565faa8eb75a0a499ba8c4e60b68, type: 2}
+  - {fileID: 11400000, guid: 35bc88046676e5526b6f63dbe2b70e55, type: 2}
+  - {fileID: 11400000, guid: 509227a979e84df19a30ac1899805df1, type: 2}
+  - {fileID: 11400000, guid: 154e2fdcc808bc60d92ab96fcad39c78, type: 2}
+  - {fileID: 11400000, guid: ffa6f7f441eec379e8a61aa3f1bc6b4c, type: 2}
+  - {fileID: 11400000, guid: abb30417865b94bc098d1eee730bb27c, type: 2}
+  - {fileID: 11400000, guid: 938a9ab0284320348ac6da68e804dc4b, type: 2}
+  - {fileID: 11400000, guid: 3b612ad4d8d5bdc78bd07e188e03751d, type: 2}
+  - {fileID: 11400000, guid: 2019dd6ef011a79b9bfcd40a99308cf3, type: 2}
+  - {fileID: 11400000, guid: 7fea94bd3c2448e21a40d475de8c8083, type: 2}
+  - {fileID: 11400000, guid: 8510e726bff3337eab41d3de7ee26fd6, type: 2}
+  - {fileID: 11400000, guid: 346461c08c4f050d98567dbd43706cb7, type: 2}
+  - {fileID: 11400000, guid: efd65f101a1ac29bb9f3b4f1a59b73b4, type: 2}
+  - {fileID: 11400000, guid: 1d14f8c2171f48df69453b100d0b8a49, type: 2}
+  leaderDark: {fileID: 11400000, guid: 2c97ce2f60a2f522fbec3596f7d53c78, type: 2}
+  leaderCelestial: {fileID: 11400000, guid: b21e49261e514b3e89695c238362da7c, type: 2}
+  specialCards:
+  - {fileID: 11400000, guid: 15cdc973d1f93e5e39188c318d78459a, type: 2}
+  - {fileID: 11400000, guid: 9be9947b1902f3bfcb992a8848069a6e, type: 2}
+  - {fileID: 11400000, guid: 530d54d179bfd4d8c9680ba3708583a4, type: 2}
+  - {fileID: 11400000, guid: fc5890f6cd8799826ac83fe60bf7ba1f, type: 2}
+  - {fileID: 11400000, guid: 571d76b29e2ac2c8391ec12e7ad976a1, type: 2}
+  - {fileID: 11400000, guid: d2bc65f8e4f2c1f52849833fa9320cb1, type: 2}
+  - {fileID: 11400000, guid: 52a79940d11c1b0ae91f5634b0c7d86e, type: 2}
+  - {fileID: 11400000, guid: 5956fcc5fa291029da7c5166dc04a02b, type: 2}
+  - {fileID: 11400000, guid: db742b763a1982f43affc1a2c99f04af, type: 2}
+  - {fileID: 11400000, guid: 663e4365fc2bf1e3abd97b534eb49770, type: 2}
+  createdCards: []
+  p1Cards: []
+  p2Cards: []
+  p1Leader: {fileID: 0}
+  p2Leader: {fileID: 0}
 --- !u!1 &1871026741
 GameObject:
   m_ObjectHideFlags: 0

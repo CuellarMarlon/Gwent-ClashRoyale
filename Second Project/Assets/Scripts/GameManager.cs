@@ -9,12 +9,15 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     public GameObject cardPrefab; //Prefab de cartas
-    public GameObject p1Deck, p2Deck, p1Hand, p2Hand; //Obejetos del tablero
+    public GameObject p1Deck, p2Deck, p1Hand, p2Hand, p1Leader, p2Leader; //Obejetos del tablero
     public GameObject p1R_M, p1R_R, p1R_S, p2R_M, p2R_R, p2R_S; // Filas del  tablero
     public GameObject p1W_M, p1W_R, p1W_S, p2W_M, p2W_R, p2W_S; // Climas del  tablero
     public GameObject cementeryP1, cementeryP2; 
     public List<Card> p1Cards = new List<Card>(); //Cartas seleccionadas por el jugador uno
     public List<Card> p2Cards = new List<Card>(); //Cartas seleccionadas por el jugador dos
+    public Card p1LeaderCard;
+    public Card p2LeaderCard;
+
     public GameObject discardPanel; //Panel para descartar las dos cartas
     public GameObject handPanel; //Objeto que  contiene las cartas de la mano del jugador en el panel 
     
@@ -46,16 +49,39 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        p1Cards = DataGame.Instance.p1Cards;
+        p2Cards = DataGame.Instance.p2Cards;
+        p1LeaderCard = DataGame.Instance.p1Leader;
+        p2LeaderCard = DataGame.Instance.p2Leader;
+
         discardPanel.SetActive(false);
-        PrepareGame(p1Cards, p1Deck);
-        PrepareGame(p2Cards, p2Deck);
+
+        GameContext.Instance.Hands[1] = new CardList();
+        GameContext.Instance.Hands[2] = new CardList();
+        GameContext.Instance.Decks[1] = new CardList();
+        GameContext.Instance.Decks[2] = new CardList();
+        GameContext.Instance.Graveyards[1] = new CardList();
+        GameContext.Instance.Graveyards[2] = new CardList();
+        GameContext.Instance.Fields[1] = new CardList();
+        GameContext.Instance.Fields[2] = new CardList();
+
+        PrepareGame(p1Cards, p1Deck, p1LeaderCard, p1Leader);   
+        PrepareGame(p2Cards, p2Deck, p2LeaderCard, p2Leader);
         ShuffleChildren(p1Deck.transform);
         ShuffleChildren(p2Deck.transform);
         DrawnCard(10);
+        ActualizeContext();
     }
 
-    public void PrepareGame(List<Card> playerCards, GameObject playerDeck)
+    public void PrepareGame(List<Card> playerCards, GameObject playerDeck, Card leader, GameObject leaderPos)
     {
+        //Instanciar el lider en su posicion
+        GameObject leaderInstance = GameObject.Instantiate(cardPrefab, leaderPos.transform);
+        CardDisplay leaderDisplay = leaderInstance.GetComponent<CardDisplay>();
+        leaderDisplay.card = leader;
+        leaderDisplay.InitializeCard();
+
+
         // Instanciar las cartas del primer jugador
         foreach (var card in playerCards) 
         {
@@ -69,8 +95,6 @@ public class GameManager : MonoBehaviour
             cardDisplay.card = card;
             cardDisplay.InitializeCard();
 
-            // // Agrerar la carta a la lista deck
-            // deckP1.AddLast(card);
         }
     }
 
@@ -197,7 +221,21 @@ public class GameManager : MonoBehaviour
         }
 
         currentPlayer = currentPlayer % 2 + 1;
+        GameContext.Instance.TriggerPlayer = GameContext.Instance.TriggerPlayer % 2 + 1;
     }
+
+    public void ActualizeContext()
+    {
+        GameContext.Instance.ActualiceContext(1, p1Hand, p1Deck, cementeryP1, p1R_M, p1R_R, p1R_S, p1W_M, p1W_R, p1W_S);
+        GameContext.Instance.ActualiceContext(2, p2Hand, p2Deck, cementeryP2, p2R_M, p2R_R, p2R_S, p2W_M, p2W_R, p2W_S);
+    }
+
+    public void ActualiceVisual()
+    {
+        GameContext.Instance.ActualiceVisual(1, p1Hand, p1Deck, cementeryP1, p1R_M, p1R_R, p1R_S, p1W_M, p1W_R, p1W_S, cardPrefab);
+        GameContext.Instance.ActualiceVisual(2, p2Hand, p2Deck, cementeryP2, p2R_M, p2R_R, p2R_S, p2W_M, p2W_R, p2W_S, cardPrefab);
+    }
+
 
     public void SendCardsToCementery()
     {

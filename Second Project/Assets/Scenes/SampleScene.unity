@@ -4112,6 +4112,8 @@ MonoBehaviour:
   p2Deck: {fileID: 1506426125}
   p1Hand: {fileID: 729925070}
   p2Hand: {fileID: 1255347112}
+  p1Leader: {fileID: 1689133683}
+  p2Leader: {fileID: 1294272214}
   p1R_M: {fileID: 1336914349}
   p1R_R: {fileID: 1784786032}
   p1R_S: {fileID: 1378913716}
@@ -4164,6 +4166,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 64daee5881d5ee164b69f209f47eb7be, type: 2}
   - {fileID: 11400000, guid: 684ea2281cb82a6ffa45638e4b5f0a58, type: 2}
   - {fileID: 11400000, guid: 0e4e66f03c4d8e3deb9d632deeb05d36, type: 2}
+  p1LeaderCard: {fileID: 0}
+  p2LeaderCard: {fileID: 0}
   discardPanel: {fileID: 2052192063}
   handPanel: {fileID: 1711714562}
   currentPlayer: 1

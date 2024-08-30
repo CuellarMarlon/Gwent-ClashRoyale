@@ -60,7 +60,7 @@ public class CardZoom : MonoBehaviour
             }
         }
     }
-
+                                                           
     public void HideCardInfo()
     {
         cardImage.enabled = false;

@@ -13,8 +13,7 @@ public class CardDisplay : MonoBehaviour, IPointerEnterHandler
 {
     public Card card;
     public CardZoom cardZoom;
-    public CardInfo cardInfo;
-
+    public CardInfo cardInfo;   
 
     public TextMeshProUGUI cardName;
     public TextMeshProUGUI shadowCardName;
@@ -33,14 +32,18 @@ public class CardDisplay : MonoBehaviour, IPointerEnterHandler
             cardInfo = GameObject.Find("InfoCardObject").GetComponent<CardInfo>();
 
         }
-        else if (SceneManager.GetActiveScene().buildIndex == 3) 
+        else if (SceneManager.GetActiveScene().buildIndex == 4) 
         {
             cardZoom = GameObject.Find("CardZoom").GetComponent<CardZoom>();
             deckP1 = GameObject.Find("Deck_P1");
             deckP2 = GameObject.Find("Deck_P2");
-            InitializeCard();
         }
-    
+        else if (SceneManager.GetActiveScene().buildIndex == 3)
+        {
+            cardInfo = GameObject.Find("InfoCardObject").GetComponent<CardInfo>();
+        }
+
+        InitializeCard();
     }
 
     public void InitializeCard()
@@ -90,15 +93,16 @@ public class CardDisplay : MonoBehaviour, IPointerEnterHandler
 
     public void Update()
     {
-        if (this.transform.parent == deckP1.transform || this.transform.parent == deckP2.transform)
+        if (SceneManager.GetActiveScene().buildIndex == 4)
         {
-            cardBack.SetActive(true);
-        }  
-        else
-        {
-            cardBack.SetActive(false);
+            if (this.transform.parent == deckP1.transform || this.transform.parent == deckP2.transform)
+            {
+                cardBack.SetActive(true);
+            }  
+            else
+            {
+                cardBack.SetActive(false);
+            }
         }      
     }
-
-
 }
