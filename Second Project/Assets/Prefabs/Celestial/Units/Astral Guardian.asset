@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e29c953e6465f6d438454c0d270d573b, type: 3}
   m_Name: Astral Guardian
   m_EditorClassIdentifier: 
-  Owner: 0
+  Owner: 2
   IsCreated: 0
   Photo: {fileID: 21300000, guid: 697f66e69cc8a229ba2d36c5667eb475, type: 3}
   Type: 1
-  Effect: 7
+  Effect: 8
   Name: Astral Guardian
   Faction: 1
   Power: 6

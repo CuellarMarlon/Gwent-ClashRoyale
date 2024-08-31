@@ -5,7 +5,7 @@ using UnityEngine;
 namespace GwentPlus
 {
     public enum CardType { Oro, Plata, Clima, Aumento, Despeje, Senuelo, Lider }
-    public enum Effect { Oro, Plata, Clima, Aumento, Despeje, Senuelo, Lider, NoEffect }
+    public enum Effect { Oro, Plata, Clima, Aumento, Despeje, Senuelo, Dark, Celestial, NoEffect }
     public enum Faction { Dark, Celestial, Neutral } 
     public enum Range { Melee, Ranged, Siege }
 
@@ -59,6 +59,14 @@ namespace GwentPlus
                 else if (Effect == Effect.Despeje)
                 {
                     EffectDespeje();
+                }
+                else if (Effect == Effect.Dark)
+                {
+                    EffectDark();
+                }
+                else if (Effect == Effect.Celestial)
+                {
+                    EffectCelestial();
                 }
                 else if (Effect == Effect.NoEffect)
                 {
@@ -243,12 +251,52 @@ namespace GwentPlus
             }
         }
 
-        public void EffectAumentoField()
+        public void EffectDark()
         {
-            foreach (Card card in GameContext.Instance.Fields[Owner % 2 + 1])
+            foreach (Card card in GameContext.Instance.Fields[Owner])
             {
-                card.Power += 2;
+                card.Power -= 2;
             }
+        }
+
+        public void EffectCelestial()
+        {
+            CardList cards = GameContext.Instance.Fields[Owner % 2 + 1];
+
+            Card firstMaxPowerCard = null;
+            Card secondMaxPowerCard = null;
+            int maxPower = 0;
+            int secondMaxPower = 0;
+
+            foreach (Card card in cards)
+            {
+                if (card.Power > maxPower)
+                {
+                    secondMaxPower = maxPower;
+                    secondMaxPowerCard = firstMaxPowerCard;
+                    maxPower = card.Power;
+                    firstMaxPowerCard = card;
+                }
+                else if (card.Power > secondMaxPower && card.Power <= maxPower)
+                {
+                    secondMaxPower = card.Power;
+                    secondMaxPowerCard = card;
+                }
+            }
+
+            if (firstMaxPowerCard == null || secondMaxPowerCard == null)
+            {
+                return;
+            }
+
+            GameContext.Instance.Graveyards[Owner % 2 + 1].Add(firstMaxPowerCard);
+            GameContext.Instance.Graveyards[Owner % 2 + 1].Add(secondMaxPowerCard);
+
+            GameContext.Instance.Fields[Owner % 2 + 1].Remove(firstMaxPowerCard);
+            GameContext.Instance.Fields[Owner % 2 + 1].Remove(secondMaxPowerCard);
+
+            GameContext.Instance.RemoveCard(firstMaxPowerCard);
+            GameContext.Instance.RemoveCard(secondMaxPowerCard);
         }
     }
         

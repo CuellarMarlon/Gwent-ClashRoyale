@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e29c953e6465f6d438454c0d270d573b, type: 3}
   m_Name: Threshold Demon
   m_EditorClassIdentifier: 
-  Owner: 0
+  Owner: 2
   IsCreated: 0
   Photo: {fileID: 21300000, guid: e70e860ab94e95942bc72b485bd9309c, type: 3}
   Type: 0
-  Effect: 7
+  Effect: 8
   Name: Threshold Demon
   Faction: 0
   Power: 7

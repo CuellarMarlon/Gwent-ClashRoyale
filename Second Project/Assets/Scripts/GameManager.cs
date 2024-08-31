@@ -79,7 +79,7 @@ public class GameManager : MonoBehaviour
         GameObject leaderInstance = GameObject.Instantiate(cardPrefab, leaderPos.transform);
         CardDisplay leaderDisplay = leaderInstance.GetComponent<CardDisplay>();
         leaderDisplay.card = leader;
-        leaderDisplay.InitializeCard();
+        Debug.Log("Se debe haber actualizado un leader");
 
 
         // Instanciar las cartas del primer jugador
@@ -293,6 +293,8 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+
+        Debug.Log(currentPlayer);
     }
 
 

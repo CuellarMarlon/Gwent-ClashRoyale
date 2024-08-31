@@ -83,10 +83,9 @@ public class DragDrop : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDrag
     {
         // Evita el arrastre si el componente está desactivado
         if (!enabled) return;
-        
-        // Actualiza la posición del objeto basado en el movimiento del ratón
-        rectTransform.anchoredPosition += eventData.delta;
-
+    
+        Vector3 mousePosition = Input.mousePosition;
+        rectTransform.position = mousePosition;        
     }
 
     // Se llama al finalizar el arrastre

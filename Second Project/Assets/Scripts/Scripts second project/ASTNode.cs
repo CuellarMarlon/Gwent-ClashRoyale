@@ -1,4 +1,4 @@
- using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,7 +16,7 @@ namespace GwentPlus
         public string Name { get; set; }
         public Dictionary<string, string> Params { get; set; }
         public ActionNode Actions { get; set; }
-
+        
         public EffectNode()
         {
             Params = new Dictionary<string, string>();

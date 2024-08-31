@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e29c953e6465f6d438454c0d270d573b, type: 3}
   m_Name: Winged Nightmare
   m_EditorClassIdentifier: 
-  Owner: 0
+  Owner: 2
   IsCreated: 0
   Photo: {fileID: 21300000, guid: 20ea6e72fd17a7077a592c098a0ae5aa, type: 3}
   Type: 1
-  Effect: 7
+  Effect: 8
   Name: Winged Nightmare
   Faction: 0
   Power: 5

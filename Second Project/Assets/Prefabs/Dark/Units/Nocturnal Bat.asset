@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e29c953e6465f6d438454c0d270d573b, type: 3}
   m_Name: Nocturnal Bat
   m_EditorClassIdentifier: 
-  Owner: 0
+  Owner: 2
   IsCreated: 0
   Photo: {fileID: 21300000, guid: 666a3b7e028c99725bf19d50cdde29ad, type: 3}
   Type: 1
-  Effect: 7
+  Effect: 8
   Name: Nocturnal Bat
   Faction: 0
-  Power: 3
+  Power: 2
   Range: 01000000

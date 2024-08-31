@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e29c953e6465f6d438454c0d270d573b, type: 3}
   m_Name: Lunar Wolf
   m_EditorClassIdentifier: 
-  Owner: 0
+  Owner: 2
   IsCreated: 0
   Photo: {fileID: 21300000, guid: 6618c2b3d5df9863eae8c0937385add3, type: 3}
   Type: 1
-  Effect: 7
+  Effect: 8
   Name: Lunar Wolf
   Faction: 0
-  Power: 5
+  Power: 4
   Range: 00000000

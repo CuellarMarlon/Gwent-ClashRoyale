@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e29c953e6465f6d438454c0d270d573b, type: 3}
   m_Name: Umbral Orb
   m_EditorClassIdentifier: 
-  Owner: 0
+  Owner: 2
   IsCreated: 0
   Photo: {fileID: 21300000, guid: 652dbb8d01ee04cd1a9763a8513759a2, type: 3}
   Type: 1
-  Effect: 7
+  Effect: 8
   Name: Umbral Orb
   Faction: 0
   Power: 4

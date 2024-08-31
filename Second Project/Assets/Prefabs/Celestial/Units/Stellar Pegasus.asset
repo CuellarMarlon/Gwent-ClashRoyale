@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e29c953e6465f6d438454c0d270d573b, type: 3}
   m_Name: Stellar Pegasus
   m_EditorClassIdentifier: 
-  Owner: 0
+  Owner: 2
   IsCreated: 0
   Photo: {fileID: 21300000, guid: ee9ed235f90df16d0b2b5d3a94b1806b, type: 3}
   Type: 1
-  Effect: 7
+  Effect: 8
   Name: Stellar Pegasus
   Faction: 1
   Power: 3

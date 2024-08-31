@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e29c953e6465f6d438454c0d270d573b, type: 3}
   m_Name: Radiant Phoenix
   m_EditorClassIdentifier: 
-  Owner: 0
+  Owner: 2
   IsCreated: 0
   Photo: {fileID: 21300000, guid: b479ed356fb0799f1960e2841fe0a04d, type: 3}
   Type: 1
-  Effect: 7
+  Effect: 8
   Name: Radiant Phoenix
   Faction: 1
   Power: 5

@@ -70,6 +70,7 @@ public class FactionButton : MonoBehaviour
                 DataGame.Instance.p1Cards.Add(card);
             }
             DataGame.Instance.p1Leader = DataGame.Instance.leaderDark;
+            DataGame.Instance.p1Leader.Owner = 1;
 
         }
         else if (owner == 2 && faction == "dark")
@@ -91,6 +92,8 @@ public class FactionButton : MonoBehaviour
                 DataGame.Instance.p2Cards.Add(card);
             }
             DataGame.Instance.p2Leader = DataGame.Instance.leaderDark;
+            DataGame.Instance.p1Leader.Owner = 2;
+
 
 
         }
@@ -113,6 +116,7 @@ public class FactionButton : MonoBehaviour
                 DataGame.Instance.p1Cards.Add(card);
             }
             DataGame.Instance.p1Leader = DataGame.Instance.leaderCelestial;
+            DataGame.Instance.p1Leader.Owner = 1;
 
         }
         else if (owner == 2 && faction == "celestial")
@@ -134,6 +138,7 @@ public class FactionButton : MonoBehaviour
                 DataGame.Instance.p2Cards.Add(card);
             }
             DataGame.Instance.p2Leader = DataGame.Instance.leaderCelestial;
+            DataGame.Instance.p1Leader.Owner = 2;
 
         }
 
