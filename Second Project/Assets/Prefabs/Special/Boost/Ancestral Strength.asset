@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e29c953e6465f6d438454c0d270d573b, type: 3}
   m_Name: Ancestral Strength
   m_EditorClassIdentifier: 
-  Owner: 0
+  Owner: 2
   IsCreated: 0
   Photo: {fileID: 21300000, guid: 9da06b7d46182d8a6b949cfab55e91cf, type: 3}
   Type: 3

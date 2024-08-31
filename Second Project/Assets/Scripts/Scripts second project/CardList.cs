@@ -89,6 +89,16 @@ namespace GwentPlus
             return cards.Count;
         }
 
+        public void Instert(int index, Card card)
+        {
+            cards.Insert(index, card);
+        }
+
+        public bool Contains(Card card)
+        {
+            return cards.Contains(card);
+        }
+
         
     }
 }

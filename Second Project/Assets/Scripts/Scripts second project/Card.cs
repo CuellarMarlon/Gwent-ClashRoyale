@@ -34,37 +34,37 @@ namespace GwentPlus
                     ActivateSpecificEffect(effect, effect.Params);
                 }
             }
-            // else 
-            // {
-            //     if (CardType == CardType.Oro)
-            //     {
-            //         EffectOro();
-            //     }
-            //     else if (CardType == CardType.Plata)
-            //     {
-            //         EffectPlata();
-            //     }
-            //     else if (CardType == CardType.Clima)
-            //     {
-            //         EffectClima();
-            //     }
-            //     else if (CardType == CardType.Aumento)
-            //     {
-            //         EffectAumento();
-            //     }
-            //     else if (CardType == CardType.Senuelo)
-            //     {
-            //         EffectSenuelo();
-            //     }
-            //     else if (CardType == CardType.Despeje)
-            //     {
-            //         EffectDespeje();
-            //     }
-            //     else if (CardEffect = NoEffect)
-            //     {
-            //         conitnue;
-            //     }
-            // }
+            else 
+            {
+                if (Effect == Effect.Oro)
+                {
+                    // EffectOro();
+                }
+                else if (Effect == Effect.Plata)
+                {
+                    // EffectPlata();
+                }
+                else if (Effect == Effect.Clima)
+                {
+                    EffectClima();
+                }
+                else if (Effect == Effect.Aumento)
+                {
+                    EffectAumento();
+                }
+                else if (Effect == Effect.Senuelo)
+                {
+                    EffectSenuelo();
+                }
+                else if (Effect == Effect.Despeje)
+                {
+                    EffectDespeje();
+                }
+                else if (Effect == Effect.NoEffect)
+                {
+                    return;
+                }
+            }
         }
         private void ActivateSpecificEffect(Effects effect, List<object> prms)
         {
@@ -102,7 +102,154 @@ namespace GwentPlus
                 Console.WriteLine($"Efecto no encontrado: {effect.Name}");
             }
         }
+
+        public void EffectSenuelo()
+        {
+            // Encontrar el lado del campo del jugador con la tarjeta de mayor poder
+            CardList cards = GameContext.Instance.Fields[Owner];
+            Card maxPowerCard = null;
+            int maxPower = 0;
+            
+            foreach (Card card in cards)
+            {
+                if (card.Power > maxPower)
+                {
+                    maxPower = card.Power;
+                    maxPowerCard = card;
+                }
+            }
         
+            // Si no se encuentra una tarjeta de alto poder, hacer nada
+            if (maxPowerCard == null)
+            {
+                return;
+            }
+        
+            // Mover el Senuelo a la misma fila que la tarjeta de mayor poder
+            Card senuelo = this;
+            GameContext.Instance.Fields[Owner].Remove(senuelo);
+            GameContext.Instance.Fields[Owner].Add(senuelo);
+        
+            // Mover la tarjeta de mayor poder decsde el campo a la mano del jugador
+            GameContext.Instance.Fields[Owner].Remove(maxPowerCard);
+            GameContext.Instance.Hands[Owner].Add(maxPowerCard);
+
+            GameContext.Instance.RemoveCard(maxPowerCard);
+
+        }
+        
+        public void EffectDespeje()
+        {
+            // Encontrar la posición de la tarjeta que activó este efecto
+            CardList cards = GameContext.Instance.Board;
+            Card cardToRemove = null;
+            Card weatherCardToRemove = null;
+            
+            foreach (Card card in cards)
+            {
+                if (card == this)
+                {
+                    cardToRemove = card;
+                    break;
+                }
+            }
+        
+            // Si no se encontró la tarjeta, hacer nada
+            if (cardToRemove == null)
+            {
+                return;
+            }
+        
+            // Mover la tarjeta al cementerio
+            GameContext.Instance.Board.Remove(cardToRemove);
+            GameContext.Instance.Graveyards[Owner % 2 + 1].Add(cardToRemove);
+
+
+            // Mover la tarjeta de clima al cementerio
+            foreach (Card card in cards)
+            {
+                if (card.Type.ToString() == "Clima") 
+                {
+                    weatherCardToRemove = card;
+                    break;
+                }
+            }
+        
+            if (weatherCardToRemove != null)
+            {
+                GameContext.Instance.Board.Remove(weatherCardToRemove);
+                GameContext.Instance.Graveyards[Owner].Add(weatherCardToRemove);
+            }
+
+            GameContext.Instance.RemoveCard(cardToRemove);
+            GameContext.Instance.RemoveCard(weatherCardToRemove);
+
+
+        }
+
+        public void EffectAumento()
+        {
+            // Buscar la carta activadora en todas las filas
+            CardList filaActivadora = null;
+            if (GameContext.Instance.rowMeleeP1.Contains(this))
+                filaActivadora = GameContext.Instance.rowMeleeP1;
+            else if (GameContext.Instance.rowRangeP1.Contains(this))
+                filaActivadora = GameContext.Instance.rowRangeP1;
+            else if (GameContext.Instance.rowSiegeP1.Contains(this))
+                filaActivadora = GameContext.Instance.rowSiegeP1;
+            else if (GameContext.Instance.rowMeleeP2.Contains(this))
+                filaActivadora = GameContext.Instance.rowMeleeP2;
+            else if (GameContext.Instance.rowRangeP2.Contains(this))
+                filaActivadora = GameContext.Instance.rowRangeP2;
+            else if (GameContext.Instance.rowSiegeP2.Contains(this))
+                filaActivadora = GameContext.Instance.rowSiegeP2;
+
+            // Si se encontró la carta activadora en alguna fila
+            if (filaActivadora != null)
+            {
+                // Aumentar el poder de todas las cartas en esa fila
+                foreach (Card carta in filaActivadora)
+                {
+                    carta.Power += 1;
+                }
+            }
+        }
+
+        public void EffectClima()
+        {
+            // Buscar la carta activadora en todas las filas
+            CardList filaActivadora = null;
+            if (GameContext.Instance.weatherMeleeP1.Contains(this))
+                filaActivadora = GameContext.Instance.rowMeleeP1;
+            else if (GameContext.Instance.weatherRangeP1.Contains(this))
+                filaActivadora = GameContext.Instance.rowRangeP1;
+            else if (GameContext.Instance.weatherSiegeP1.Contains(this))
+                filaActivadora = GameContext.Instance.rowSiegeP1;
+            else if (GameContext.Instance.weatherMeleeP2.Contains(this))
+                filaActivadora = GameContext.Instance.rowMeleeP2;
+            else if (GameContext.Instance.weatherRangeP2.Contains(this))
+                filaActivadora = GameContext.Instance.rowRangeP2;
+            else if (GameContext.Instance.weatherSiegeP2.Contains(this))
+                filaActivadora = GameContext.Instance.rowSiegeP2;
+
+            // Si se encontró la carta activadora en alguna fila
+            if (filaActivadora != null)
+            {
+                // Aumentar el poder de todas las cartas en esa fila
+                foreach (Card carta in filaActivadora)
+                {
+                    carta.Power -= 1;
+                }
+            }
+        }
+
+        public void EffectAumentoField()
+        {
+            foreach (Card card in GameContext.Instance.Fields[Owner % 2 + 1])
+            {
+                card.Power += 2;
+            }
+        }
     }
         
 }

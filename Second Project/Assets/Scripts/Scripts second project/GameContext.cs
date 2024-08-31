@@ -195,8 +195,42 @@ namespace GwentPlus
                 Fields[owner].AddRange(weatherRangeP2);
                 Fields[owner].AddRange(weatherSiegeP2);
             }
-            
+
         }
 
+        public void RemoveCard(Card card)
+        {
+            SearchInCardList(rowMeleeP1, card);
+            SearchInCardList(rowRangeP1, card);
+            SearchInCardList(rowSiegeP1, card);
+            SearchInCardList(rowMeleeP2, card);
+            SearchInCardList(rowRangeP2, card);
+            SearchInCardList(rowSiegeP2, card);
+
+            SearchInCardList(weatherMeleeP1, card);
+            SearchInCardList(weatherRangeP1, card);
+            SearchInCardList(weatherSiegeP1, card);
+            SearchInCardList(weatherMeleeP2, card);
+            SearchInCardList(weatherRangeP2, card);
+            SearchInCardList(weatherSiegeP2, card);
+
+
+        }
+
+        private void SearchInCardList(CardList cardList, Card card)
+        {
+            List<Card> cardsToRemove = new List<Card>();
+            foreach (Card item in cardList)
+            {
+                if (card == item)
+                {
+                    cardsToRemove.Add(item);
+                }
+            }
+            foreach (Card item in cardsToRemove)
+            {
+                cardList.Remove(item);
+            }
+        }
     }
 }

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e29c953e6465f6d438454c0d270d573b, type: 3}
   m_Name: Power Ritual
   m_EditorClassIdentifier: 
-  Owner: 0
+  Owner: 2
   IsCreated: 0
   Photo: {fileID: 21300000, guid: 3c8de9b9573bb77a59cdc12403adc117, type: 3}
   Type: 3
