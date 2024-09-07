@@ -79,36 +79,32 @@ namespace GwentPlus
             var effectMethod = typeof(EffectCreated).GetMethod(effect.Name.Substring(1, effect.Name.Length - 2) + "Effect");
             if (effectMethod != null)
             {
-                var targetList = effect.Targets;
                 if(prms.Count == 0 || prms == null)
                 {
-                    targetList = effect.Targets; 
+                    var targetList = effect.Targets; 
                     effectMethod.Invoke(EffectCreated, new object[] { targetList, GameContext.Instance }); 
                 }
                 else if(prms.Count == 1)
                 {
-                    targetList = effect.Targets; 
+                    var targetList = effect.Targets; 
                     effectMethod.Invoke(EffectCreated, new object[] { targetList, GameContext.Instance, int.Parse(prms[0].ToString()!) }); 
                 }
                 else if(prms.Count == 2)
                 {
-                    targetList = effect.Targets; 
+                    var targetList = effect.Targets; 
                     effectMethod.Invoke(EffectCreated, new object[] { targetList, GameContext.Instance, int.Parse(prms[0].ToString()!), int.Parse(prms[1].ToString()!) }); 
                 }
                 else if(prms.Count == 3)
                 {
-                    targetList = effect.Targets; 
+                    var targetList = effect.Targets; 
                     effectMethod.Invoke(EffectCreated, new object[] { targetList, GameContext.Instance, int.Parse(prms[0].ToString()!), int.Parse(prms[1].ToString()!), int.Parse(prms[2].ToString()!) }); 
                 }
                 else
                 {
-                    targetList = effect.Targets; 
+                    var targetList = effect.Targets; 
                     effectMethod.Invoke(EffectCreated, new object[] { targetList, GameContext.Instance, int.Parse(prms[0].ToString()!), int.Parse(prms[1].ToString()!), int.Parse(prms[2].ToString()!), int.Parse(prms[3].ToString()!) }); 
                 }
-                // foreach (Card card in targetList)
-                // {
-                //     GameContext.Instance.RemoveCard(card);
-                // }
+                
             }
             else
             {

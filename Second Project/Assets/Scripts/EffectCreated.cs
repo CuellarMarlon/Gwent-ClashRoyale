@@ -54,7 +54,7 @@ public class EffectCreated
         var deck = context.Deck;
         deck.Push(target);
         deck.Shuffle();
-        context.Board.Remove(target);
+        context.RemoveCard(target);
         }
     }
 
