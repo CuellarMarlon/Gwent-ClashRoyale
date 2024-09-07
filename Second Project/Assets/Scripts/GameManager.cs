@@ -245,7 +245,6 @@ public class GameManager : MonoBehaviour
         foreach (var boardObject in boardObjectsP1)
         {
             Transform transform = boardObject.transform;
-            Debug.Log("P1 Object: " + boardObject.name + " has " + transform.childCount + " children.");
             while (transform.childCount > 0)
             {
                 Transform child = transform.GetChild(0);
@@ -259,7 +258,6 @@ public class GameManager : MonoBehaviour
         foreach (var boardObject in boardObjectsP2)
         {
             Transform transform = boardObject.transform;
-            Debug.Log("P2 Object: " + boardObject.name + " has " + transform.childCount + " children.");
             while (transform.childCount > 0)
             {
                 Transform child = transform.GetChild(0);
@@ -294,7 +292,6 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        Debug.Log(currentPlayer);
     }
 
 

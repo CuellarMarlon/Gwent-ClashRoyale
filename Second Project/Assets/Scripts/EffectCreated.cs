@@ -6,6 +6,7 @@ public class EffectCreated
     {
          UnityEngine.Debug.Log("EffectoEjecutado");
          UnityEngine.Debug.Log("Current:" + GameManager.Instance.currentPlayer);
+         UnityEngine.Debug.Log("TargetCount: " + targets.Count());
         foreach (Card target in targets)
         {
         var i = 0;
@@ -21,6 +22,7 @@ public class EffectCreated
     {
          UnityEngine.Debug.Log("EffectoEjecutado");
          UnityEngine.Debug.Log("Current:" + GameManager.Instance.currentPlayer);
+         UnityEngine.Debug.Log("TargetCount: " + targets.Count());
         foreach (Card target in targets)
         {
         var j = 0;
@@ -36,6 +38,7 @@ public class EffectCreated
     {
          UnityEngine.Debug.Log("EffectoEjecutado");
          UnityEngine.Debug.Log("Current:" + GameManager.Instance.currentPlayer);
+         UnityEngine.Debug.Log("TargetCount: " + targets.Count());
         var topCard = context.Deck.Pop();
         context.Hand.Add(topCard);
         context.Hand.Shuffle();
@@ -45,6 +48,7 @@ public class EffectCreated
     {
          UnityEngine.Debug.Log("EffectoEjecutado");
          UnityEngine.Debug.Log("Current:" + GameManager.Instance.currentPlayer);
+         UnityEngine.Debug.Log("TargetCount: " + targets.Count());
         foreach (Card target in targets)
         {
         var deck = context.Deck;

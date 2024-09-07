@@ -21,7 +21,16 @@ public class CreateCard : MonoBehaviour
 
     public void OnRunButtonClicked()
     {
-        CodeGenerator(ParserFunction(LexerFunction()));
+        List<Token> tokens = LexerFunction();
+        Debug.Log("Lexer check");
+
+        List<ASTNode> nodes = ParserFunction(tokens);
+        Debug.Log("Parser check");
+
+        CodeGenerator(nodes);
+        Debug.Log("CodeGenerator check");
+
+        // CodeGenerator(ParserFunction(LexerFunction()));
         if (cardsCreated != null)
         {
             CleanUpInstantiatedCards();

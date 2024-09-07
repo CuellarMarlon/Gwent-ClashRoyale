@@ -11,7 +11,7 @@ namespace GwentPlus
         private List<ASTNode> _nodes;
         public List<Card> _cards = new List<Card>(); // Almacena las cartas creadas
         public Context context = new Context(null!); //para llevar las variables
-
+        
         public CodeGenerator(List<ASTNode> nodes)
         {
             _nodes = nodes;
@@ -83,7 +83,8 @@ namespace GwentPlus
             writer.WriteLine("    {");
             writer.WriteLine("         UnityEngine.Debug.Log(\"EffectoEjecutado\");");
             writer.WriteLine("         UnityEngine.Debug.Log(\"Current:\" + GameManager.Instance.currentPlayer);");
-
+            writer.WriteLine("         UnityEngine.Debug.Log(\"TargetCount: \" + targets.Count());");
+            
 
 
             foreach (var action in effectNode.Actions.Children)

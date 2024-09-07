@@ -37,6 +37,11 @@ public class Parser : MonoBehaviour
         context = new Context();
         _tokens = tokens;
         _position = 0;
+        errorText = GameObject.Find("ErrorText").GetComponent<TextMeshProUGUI>();
+        if (errorText == null)
+        {
+            Debug.LogError("ErrorText no encontrado en la escena.");
+        }
     }
     
     // Obtener el token actual
@@ -64,6 +69,8 @@ public class Parser : MonoBehaviour
     // Mostrar mensaje de error
     private void ShowError(string message)
     {
+        Debug.Log($"Show: {errorText != null}");
+
         if (errorText != null)
         {
             errorText.text = message; // Actualiza el texto del TextMeshProUGUI con el mensaje de error
@@ -176,7 +183,8 @@ public class Parser : MonoBehaviour
                         effectContext.DefineVariable(paramName, false);
                         break;
                     default:
-                        throw new Exception($"El tipo de dato no está permitido para {paramName}.");
+                        ShowError($"El tipo de dato no está permitido para {paramName}.");
+                        break;
                 }
             }
             else
